@@ -17,7 +17,11 @@ namespace LateBloom.Jigsaw
         {
             if (phaseManager == null)
             {
+#if UNITY_2023_1_OR_NEWER
+                phaseManager = FindFirstObjectByType<PuzzlePhaseManager>();
+#else
                 phaseManager = FindObjectOfType<PuzzlePhaseManager>();
+#endif
             }
         }
 

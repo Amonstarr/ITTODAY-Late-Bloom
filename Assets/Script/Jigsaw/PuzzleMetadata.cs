@@ -4,6 +4,23 @@ using UnityEngine;
 
 namespace LateBloom.Jigsaw
 {
+    [Serializable]
+    public class PieceSaveState
+    {
+        public int id;
+        public bool isSnapped;
+        public float posX;
+        public float posY;
+    }
+
+    [Serializable]
+    public class PuzzleSaveData
+    {
+        public string puzzleId = "sunflower_phase1";
+        public bool isCompleted = false;
+        public List<PieceSaveState> pieceStates = new List<PieceSaveState>();
+    }
+
     [CreateAssetMenu(fileName = "NewPuzzleMetadata", menuName = "Late Bloom/Puzzle Metadata")]
     public class PuzzleMetadata : ScriptableObject
     {
