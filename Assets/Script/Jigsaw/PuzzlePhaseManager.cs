@@ -71,6 +71,25 @@ namespace LateBloom.Jigsaw
             ApplyCurrentStageStatus();
         }
 
+#if UNITY_EDITOR
+        private void Update()
+        {
+            // ── TEST SHORTCUTS (Editor Only) ──────────────────
+            // N = Advance ke fase berikutnya (Seed → Bud → Bloom)
+            // R = Reset ke fase Seed
+            if (UnityEngine.Input.GetKeyDown(KeyCode.N))
+            {
+                AdvanceGrowthStage();
+                Debug.Log($"[TEST] Stage sekarang: {currentStage}");
+            }
+            if (UnityEngine.Input.GetKeyDown(KeyCode.R))
+            {
+                ResetProgress();
+                Debug.Log("[TEST] Stage di-reset ke Seed.");
+            }
+        }
+#endif
+
         private void OnDisable()
         {
             SavePhaseProgress();

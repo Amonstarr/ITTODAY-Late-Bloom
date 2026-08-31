@@ -4,6 +4,18 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scene/1.unity
+    guid: 4a0635aedff4b5c4e94ee94f9afd0a0c
+  - enabled: 1
+    path: Assets/Scene/Jigsaw.unity
+    guid: 5b0332323e02d8a4fa8f65906295e547
+  - enabled: 1
+    path: Assets/Scene/MainMenu.unity
+    guid: 5c8b9a933b146af44b74cd350efc8250
+  - enabled: 1
+    path: Assets/Scene/Meja-tanaman.unity
+    guid: 8b393109e5c67244ab0eff512d16230b
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
