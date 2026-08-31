@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e981900222ed40e4bbc04ee1f0da14b6, type: 3}
+  m_Name: Metadata_Sunflower
+  m_EditorClassIdentifier: Assembly-CSharp::LateBloom.Jigsaw.PuzzleMetadata
+  puzzleId: sunflower
+  instanceId: pot_1
+  flowerName: Bunga Matahari
+  puzzlePhotoTexture: {fileID: 2800000, guid: 807ff010377a58949a51bf1076455c7f, type: 3}
+  backgroundSprite: {fileID: 0}
+  boardFrameSprite: {fileID: 0}
+  seedStagePieces: 4
+  budStagePieces: 4
+  bloomStagePieces: 8
+  currentStage: 0
+  isUnlocked: 0
+  isCompleted: 0
+  pieceStates: []

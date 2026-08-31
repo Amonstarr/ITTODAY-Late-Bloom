@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace LateBloom.Jigsaw
 {
+    public enum PieceShapeStyle
+    {
+        SquareGrid,           // Potongan grid kotak lurus biasa
+        JigsawInterlocking    // Potongan klasik Jigsaw (Benjolan & Lekukan Interlocking)
+    }
+
     [Serializable]
     public class PieceSaveState
     {
