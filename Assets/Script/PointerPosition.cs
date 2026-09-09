@@ -20,6 +20,7 @@ public class PointerPosition : MonoBehaviour
         Collider2D hit =
        Physics2D.OverlapPoint(mousePosition);
 
+        IHoverable previousHoverable = currentHoverable;
         currentHoverable = null;
 
         if (hit != null)
@@ -27,16 +28,15 @@ public class PointerPosition : MonoBehaviour
             currentHoverable =
                 hit.GetComponent<IHoverable>();
         }
+
+        if (previousHoverable != null && previousHoverable != currentHoverable)
+        {
+            previousHoverable.OnHoverExit();
+        }
+
         if (currentHoverable != null)
         {
             currentHoverable.OnHoverEnter();
-        }
-        else
-        {
-            if (currentHoverable != null)
-            {
-                currentHoverable.OnHoverExit();
-            }
         }
     }
 }
