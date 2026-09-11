@@ -68,11 +68,23 @@ namespace LateBloom.Jigsaw
             }
         }
 
+        [Header("Phase Configuration & Options")]
+        [Tooltip("Aktifkan TRUE jika ingin fase bunga selalu dimulai dari Seed (Benih) saat pertama Play, mengabaikan data simpanan lama.")]
+        public bool startAtSeedOnPlay = true;
+
         private void Start()
         {
             ApplyMetadataIfAvailable();
-            LoadPhaseProgress();
-            ApplyCurrentStageStatus();
+
+            if (startAtSeedOnPlay)
+            {
+                ResetProgress();
+            }
+            else
+            {
+                LoadPhaseProgress();
+                ApplyCurrentStageStatus();
+            }
         }
 
 #if UNITY_EDITOR

@@ -12,6 +12,9 @@ namespace LateBloom.Raising
         public FlowerData activeFlowerData;
         public FlowerGrowthStage currentStage = FlowerGrowthStage.Seed;
 
+        [Tooltip("Aktifkan TRUE jika ingin fase pertumbuhan bunga selalu dimulai dari Seed (Benih) saat pertama Play.")]
+        public bool startAtSeedOnPlay = true;
+
         [Header("Accumulated Growth Stats")]
         [SerializeField] private int currentSunlight = 0;
         [SerializeField] private int currentNutrients = 0;
@@ -38,7 +41,14 @@ namespace LateBloom.Raising
 
         private void Start()
         {
-            NotifyStats();
+            if (startAtSeedOnPlay)
+            {
+                ResetGrowthStage();
+            }
+            else
+            {
+                NotifyStats();
+            }
         }
 
 #if UNITY_EDITOR
