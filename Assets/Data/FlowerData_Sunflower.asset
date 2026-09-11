@@ -27,15 +27,15 @@ MonoBehaviour:
   - stage: 1
     targetSunlight: 75
     targetNutrients: 60
-    targetWater: 45
+    targetWater: 65
     daysAllocated: 10
   - stage: 2
-    targetSunlight: 75
-    targetNutrients: 45
-    targetWater: 60
+    targetSunlight: 120
+    targetNutrients: 90
+    targetWater: 85
     daysAllocated: 10
   - stage: 3
-    targetSunlight: 75
-    targetNutrients: 45
-    targetWater: 75
+    targetSunlight: 160
+    targetNutrients: 120
+    targetWater: 100
     daysAllocated: 10

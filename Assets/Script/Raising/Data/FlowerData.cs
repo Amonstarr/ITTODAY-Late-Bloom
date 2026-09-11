@@ -31,7 +31,24 @@ namespace LateBloom.Raising
 
         public FlowerPhaseRequirement GetRequirementForStage(FlowerGrowthStage stage)
         {
-            return phaseRequirements.Find(p => p.stage == stage);
+            if (phaseRequirements == null || phaseRequirements.Count == 0)
+            {
+                PopulateDefaultsAccordingToGDD();
+            }
+
+            FlowerPhaseRequirement req = phaseRequirements != null ? phaseRequirements.Find(p => p.stage == stage) : null;
+            if (req == null)
+            {
+                switch (stage)
+                {
+                    case FlowerGrowthStage.Seed: req = new FlowerPhaseRequirement(stage, 30, 30, 45, 10); break;
+                    case FlowerGrowthStage.Sprout: req = new FlowerPhaseRequirement(stage, 75, 60, 65, 10); break;
+                    case FlowerGrowthStage.Bud: req = new FlowerPhaseRequirement(stage, 120, 90, 85, 10); break;
+                    case FlowerGrowthStage.Bloom: req = new FlowerPhaseRequirement(stage, 160, 120, 100, 10); break;
+                    default: req = new FlowerPhaseRequirement(stage, 30, 30, 45, 10); break;
+                }
+            }
+            return req;
         }
 
         private void Reset()
@@ -51,11 +68,11 @@ namespace LateBloom.Raising
                     flowerMeaning = "Kesetiaan";
                     flowerColor = "Kuning";
                     narrativeTheme = "Kesetiaan yang salah arah. MC membangun rumah sebagai bentuk cinta, tapi lupa hadir di dalamnya.";
-                    // 10 Hari / Fase (Ramah pemula)
+                    // 10 Hari / Fase (Milestone Kumulatif)
                     phaseRequirements.Add(new FlowerPhaseRequirement(FlowerGrowthStage.Seed, 30, 30, 45, 10));
-                    phaseRequirements.Add(new FlowerPhaseRequirement(FlowerGrowthStage.Sprout, 75, 60, 45, 10));
-                    phaseRequirements.Add(new FlowerPhaseRequirement(FlowerGrowthStage.Bud, 75, 45, 60, 10));
-                    phaseRequirements.Add(new FlowerPhaseRequirement(FlowerGrowthStage.Bloom, 75, 45, 75, 10));
+                    phaseRequirements.Add(new FlowerPhaseRequirement(FlowerGrowthStage.Sprout, 75, 60, 65, 10));
+                    phaseRequirements.Add(new FlowerPhaseRequirement(FlowerGrowthStage.Bud, 120, 90, 85, 10));
+                    phaseRequirements.Add(new FlowerPhaseRequirement(FlowerGrowthStage.Bloom, 160, 120, 100, 10));
                     break;
 
                 case FlowerType.RedChrysanthemum:

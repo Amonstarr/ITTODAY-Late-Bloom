@@ -52,7 +52,8 @@ namespace LateBloom.Raising
         public void SetStage(FlowerGrowthStage newStage)
         {
             currentStage = newStage;
-            ResetPhaseStats();
+            // Poin pertumbuhan bersifat kumulatif (tidak di-reset ke 0 saat naik fase)
+            NotifyStats();
             OnStageChanged?.Invoke(currentStage);
         }
 
@@ -66,26 +67,39 @@ namespace LateBloom.Raising
 
         public void AddSunlight(int amount)
         {
-            currentSunlight = Mathf.Clamp(currentSunlight + amount, 0, 200);
+            currentSunlight = Mathf.Clamp(currentSunlight + amount, 0, 300);
             NotifyStats();
         }
 
         public void AddNutrients(int amount)
         {
-            currentNutrients = Mathf.Clamp(currentNutrients + amount, 0, 200);
+            currentNutrients = Mathf.Clamp(currentNutrients + amount, 0, 300);
             NotifyStats();
         }
 
         public void AddWater(int amount)
         {
-            currentWater = Mathf.Clamp(currentWater + amount, 0, 200);
+            currentWater = Mathf.Clamp(currentWater + amount, 0, 300);
             NotifyStats();
         }
 
         public FlowerPhaseRequirement GetCurrentRequirement()
         {
-            if (activeFlowerData == null) return null;
-            return activeFlowerData.GetRequirementForStage(currentStage);
+            if (activeFlowerData != null)
+            {
+                FlowerPhaseRequirement req = activeFlowerData.GetRequirementForStage(currentStage);
+                if (req != null) return req;
+            }
+
+            // Fallback requirement botani kumulatif jika activeFlowerData belum terhubung
+            switch (currentStage)
+            {
+                case FlowerGrowthStage.Seed: return new FlowerPhaseRequirement(currentStage, 30, 30, 45, 10);
+                case FlowerGrowthStage.Sprout: return new FlowerPhaseRequirement(currentStage, 75, 60, 65, 10);
+                case FlowerGrowthStage.Bud: return new FlowerPhaseRequirement(currentStage, 120, 90, 85, 10);
+                case FlowerGrowthStage.Bloom: return new FlowerPhaseRequirement(currentStage, 160, 120, 100, 10);
+                default: return new FlowerPhaseRequirement(currentStage, 30, 30, 45, 10);
+            }
         }
 
         private void NotifyStats()

@@ -4,6 +4,41 @@ using LateBloom.Jigsaw;
 
 namespace LateBloom.Raising
 {
+    [Serializable]
+    public struct ActionFeedbackData
+    {
+        public string actionTitle;
+        public int deltaWater;
+        public int totalWater;
+        public int deltaSunlight;
+        public int totalSunlight;
+        public int deltaNutrients;
+        public int totalNutrients;
+        public int deltaEnergy;
+        public int totalEnergy;
+        public Sprite plantSprite;
+        public Sprite potSprite;
+        public bool isSuccess;
+        public bool isStageAdvanced;
+    }
+
+    [Serializable]
+    public struct EvaluationFeedbackData
+    {
+        public EvaluationResult result;
+        public int currentSunlight;
+        public int targetSunlight;
+        public int currentNutrients;
+        public int targetNutrients;
+        public int currentWater;
+        public int targetWater;
+        public Sprite plantSprite;
+        public Sprite potSprite;
+        public bool isSuccess;
+        public string oldStageName;
+        public string newStageName;
+    }
+
     public class RaisingController : MonoBehaviour
     {
         public static RaisingController Instance { get; private set; }
@@ -21,6 +56,8 @@ namespace LateBloom.Raising
         [Header("Events")]
         public Action<string> OnActionLogged;
         public Action<EvaluationResult> OnPhaseEvaluated;
+        public Action<ActionFeedbackData> OnActionExecuted;
+        public Action<EvaluationFeedbackData> OnPhaseEvaluatedFeedback;
 
         private void Awake()
         {
@@ -176,6 +213,12 @@ namespace LateBloom.Raising
         {
             if (turnSystem.RemainingDays <= 0) return;
 
+            int prevSun = plantManager != null ? plantManager.CurrentSunlight : 0;
+            int prevWater = plantManager != null ? plantManager.CurrentWater : 0;
+            int prevNut = plantManager != null ? plantManager.CurrentNutrients : 0;
+            int prevEnergy = energyManager != null ? energyManager.CurrentEnergy : 0;
+            FlowerGrowthStage prevStage = plantManager != null ? plantManager.currentStage : FlowerGrowthStage.Seed;
+
             bool isFailed;
             bool actionSuccess = energyManager.TryPerformCareAction(out isFailed);
 
@@ -205,11 +248,19 @@ namespace LateBloom.Raising
             }
 
             turnSystem.AdvanceDay();
+
+            PublishActionFeedback(actionSuccess ? "Menjemur Tanaman" : "MC Kelelahan Saat Menjemur", actionSuccess, prevSun, prevWater, prevNut, prevEnergy, prevStage);
         }
 
         public void ExecuteWaterAction()
         {
             if (turnSystem.RemainingDays <= 0) return;
+
+            int prevSun = plantManager != null ? plantManager.CurrentSunlight : 0;
+            int prevWater = plantManager != null ? plantManager.CurrentWater : 0;
+            int prevNut = plantManager != null ? plantManager.CurrentNutrients : 0;
+            int prevEnergy = energyManager != null ? energyManager.CurrentEnergy : 0;
+            FlowerGrowthStage prevStage = plantManager != null ? plantManager.currentStage : FlowerGrowthStage.Seed;
 
             bool isFailed;
             bool actionSuccess = energyManager.TryPerformCareAction(out isFailed);
@@ -234,11 +285,19 @@ namespace LateBloom.Raising
             }
 
             turnSystem.AdvanceDay();
+
+            PublishActionFeedback(actionSuccess ? "Menyiram Tanaman" : "MC Kelelahan Saat Menyiram", actionSuccess, prevSun, prevWater, prevNut, prevEnergy, prevStage);
         }
 
         public void ExecuteNutrientAction()
         {
             if (turnSystem.RemainingDays <= 0) return;
+
+            int prevSun = plantManager != null ? plantManager.CurrentSunlight : 0;
+            int prevWater = plantManager != null ? plantManager.CurrentWater : 0;
+            int prevNut = plantManager != null ? plantManager.CurrentNutrients : 0;
+            int prevEnergy = energyManager != null ? energyManager.CurrentEnergy : 0;
+            FlowerGrowthStage prevStage = plantManager != null ? plantManager.currentStage : FlowerGrowthStage.Seed;
 
             bool isFailed;
             bool actionSuccess = energyManager.TryPerformCareAction(out isFailed);
@@ -258,21 +317,37 @@ namespace LateBloom.Raising
             }
 
             turnSystem.AdvanceDay();
+
+            PublishActionFeedback(actionSuccess ? "Memberikan Pupuk" : "MC Kelelahan Saat Memupuk", actionSuccess, prevSun, prevWater, prevNut, prevEnergy, prevStage);
         }
 
         public void ExecuteRestTeaAction()
         {
             if (turnSystem.RemainingDays <= 0) return;
 
+            int prevSun = plantManager != null ? plantManager.CurrentSunlight : 0;
+            int prevWater = plantManager != null ? plantManager.CurrentWater : 0;
+            int prevNut = plantManager != null ? plantManager.CurrentNutrients : 0;
+            int prevEnergy = energyManager != null ? energyManager.CurrentEnergy : 0;
+            FlowerGrowthStage prevStage = plantManager != null ? plantManager.currentStage : FlowerGrowthStage.Seed;
+
             energyManager.RestDrinkTea();
             LogAction($"🍵 MC duduk santai di teras, menyeduh teh hangat mendiang istri. Stamina terisi kembali (+{energyManager.TeaRestRestore}).");
 
             turnSystem.AdvanceDay();
+
+            PublishActionFeedback("Minum Teh & Istirahat", true, prevSun, prevWater, prevNut, prevEnergy, prevStage);
         }
 
         public void ExecuteRadioMoodAction()
         {
             if (turnSystem.RemainingDays <= 0) return;
+
+            int prevSun = plantManager != null ? plantManager.CurrentSunlight : 0;
+            int prevWater = plantManager != null ? plantManager.CurrentWater : 0;
+            int prevNut = plantManager != null ? plantManager.CurrentNutrients : 0;
+            int prevEnergy = energyManager != null ? energyManager.CurrentEnergy : 0;
+            FlowerGrowthStage prevStage = plantManager != null ? plantManager.currentStage : FlowerGrowthStage.Seed;
 
             if (moodManager != null)
             {
@@ -285,6 +360,56 @@ namespace LateBloom.Raising
             }
 
             turnSystem.AdvanceDay();
+
+            PublishActionFeedback("Memutar Musik Radio", true, prevSun, prevWater, prevNut, prevEnergy, prevStage);
+        }
+
+        private void PublishActionFeedback(string defaultTitle, bool actionSuccess, int prevSun, int prevWater, int prevNut, int prevEnergy, FlowerGrowthStage prevStage)
+        {
+            int curSun = plantManager != null ? plantManager.CurrentSunlight : 0;
+            int curWater = plantManager != null ? plantManager.CurrentWater : 0;
+            int curNut = plantManager != null ? plantManager.CurrentNutrients : 0;
+            int curEnergy = energyManager != null ? energyManager.CurrentEnergy : 0;
+            FlowerGrowthStage curStage = plantManager != null ? plantManager.currentStage : FlowerGrowthStage.Seed;
+            bool stageAdvanced = curStage != prevStage;
+
+            string title = defaultTitle;
+            if (stageAdvanced)
+            {
+                title = "Bibit Tumbuh";
+            }
+
+            Sprite plantSpr = null;
+#if UNITY_2023_1_OR_NEWER
+            FlowerGrowthVisual visual = FindFirstObjectByType<FlowerGrowthVisual>();
+#else
+            FlowerGrowthVisual visual = FindObjectOfType<FlowerGrowthVisual>();
+#endif
+            if (visual != null && visual.plantRenderer != null)
+            {
+                plantSpr = visual.plantRenderer.sprite;
+            }
+
+            Sprite potSpr = GameObject.Find("Pot_Bunga")?.GetComponent<SpriteRenderer>()?.sprite;
+
+            ActionFeedbackData feedback = new ActionFeedbackData
+            {
+                actionTitle = title,
+                deltaWater = curWater - prevWater,
+                totalWater = curWater,
+                deltaSunlight = curSun - prevSun,
+                totalSunlight = curSun,
+                deltaNutrients = curNut - prevNut,
+                totalNutrients = curNut,
+                deltaEnergy = curEnergy - prevEnergy,
+                totalEnergy = curEnergy,
+                plantSprite = plantSpr,
+                potSprite = potSpr,
+                isSuccess = actionSuccess,
+                isStageAdvanced = stageAdvanced
+            };
+
+            OnActionExecuted?.Invoke(feedback);
         }
 
         // ──────────────────────────────────────────
@@ -298,6 +423,15 @@ namespace LateBloom.Raising
 
             OnPhaseEvaluated?.Invoke(result);
 
+            int curSun = (plantManager != null) ? plantManager.CurrentSunlight : 0;
+            int curNut = (plantManager != null) ? plantManager.CurrentNutrients : 0;
+            int curWater = (plantManager != null) ? plantManager.CurrentWater : 0;
+            int targetSun = (req != null) ? req.targetSunlight : 30;
+            int targetNut = (req != null) ? req.targetNutrients : 30;
+            int targetWater = (req != null) ? req.targetWater : 45;
+
+            string oldStage = (plantManager != null) ? plantManager.currentStage.ToString() : "Seed";
+
             if (result.isSuccess)
             {
                 LogAction($"🎉 [CHECKPOINT SUKSES] {result.title} {result.detailMessage}");
@@ -308,7 +442,7 @@ namespace LateBloom.Raising
                     puzzlePhaseManager.AdvanceGrowthStage();
                 }
 
-                // Majukan fase internal PlantGrowthManager
+                // Majukan fase internal PlantGrowthManager (poin kumulatif tetap ada, tidak di-nolkan)
                 if (plantManager.currentStage == FlowerGrowthStage.Seed)
                 {
                     plantManager.SetStage(FlowerGrowthStage.Sprout);
@@ -333,6 +467,37 @@ namespace LateBloom.Raising
                 // Berikan 2 hari kompensasi untuk membenahi stat
                 turnSystem.StartNewPhase(2);
             }
+
+            Sprite plantSpr = null;
+#if UNITY_2023_1_OR_NEWER
+            FlowerGrowthVisual visual = FindFirstObjectByType<FlowerGrowthVisual>();
+#else
+            FlowerGrowthVisual visual = FindObjectOfType<FlowerGrowthVisual>();
+#endif
+            if (visual != null && visual.plantRenderer != null)
+            {
+                plantSpr = visual.plantRenderer.sprite;
+            }
+
+            Sprite potSpr = GameObject.Find("Pot_Bunga")?.GetComponent<SpriteRenderer>()?.sprite;
+
+            EvaluationFeedbackData feedback = new EvaluationFeedbackData
+            {
+                result = result,
+                currentSunlight = curSun,
+                targetSunlight = targetSun,
+                currentNutrients = curNut,
+                targetNutrients = targetNut,
+                currentWater = curWater,
+                targetWater = targetWater,
+                plantSprite = plantSpr,
+                potSprite = potSpr,
+                isSuccess = result.isSuccess,
+                oldStageName = oldStage,
+                newStageName = (plantManager != null) ? plantManager.currentStage.ToString() : oldStage
+            };
+
+            OnPhaseEvaluatedFeedback?.Invoke(feedback);
         }
 
         private void LogAction(string message)

@@ -33,6 +33,12 @@ public class ClickInput : MonoBehaviour
             return;
         }
 
+        // Jangan proses klik jika UI popup sedang terbuka
+        if (LateBloom.Raising.UI.ActionResultPopupUI.IsOpen)
+        {
+            return;
+        }
+
         Ray ray = mainCamera.ScreenPointToRay(screenPosition);
         RaycastHit2D rayhit = Physics2D.GetRayIntersection(ray);
 

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using LateBloom.Jigsaw;
 
 namespace LateBloom.Raising
 {
@@ -50,21 +51,29 @@ namespace LateBloom.Raising
 
             if (requirement == null)
             {
-                result.grade = EvaluationGrade.Pass;
-                result.isSuccess = true;
-                result.title = "Fase Selesai";
-                result.detailMessage = "Tidak ada spesifikasi khusus, tanaman berhasil tumbuh.";
-                OnEvaluationCompleted?.Invoke(result);
-                return result;
+                // Fallback requirement botani standar jika data requirement kosong
+                FlowerGrowthStage currentStage = (plant != null) ? plant.currentStage : FlowerGrowthStage.Seed;
+                switch (currentStage)
+                {
+                    case FlowerGrowthStage.Seed: requirement = new FlowerPhaseRequirement(currentStage, 30, 30, 45, 10); break;
+                    case FlowerGrowthStage.Sprout: requirement = new FlowerPhaseRequirement(currentStage, 75, 60, 65, 10); break;
+                    case FlowerGrowthStage.Bud: requirement = new FlowerPhaseRequirement(currentStage, 120, 90, 85, 10); break;
+                    case FlowerGrowthStage.Bloom: requirement = new FlowerPhaseRequirement(currentStage, 160, 120, 100, 10); break;
+                    default: requirement = new FlowerPhaseRequirement(currentStage, 30, 30, 45, 10); break;
+                }
             }
+
+            int currentSun = (plant != null) ? plant.CurrentSunlight : 0;
+            int currentNut = (plant != null) ? plant.CurrentNutrients : 0;
+            int currentWater = (plant != null) ? plant.CurrentWater : 0;
 
             int sunTarget = requirement.targetSunlight;
             int nutTarget = requirement.targetNutrients;
             int waterTarget = requirement.targetWater;
 
-            int sunDiff = plant.CurrentSunlight - sunTarget;
-            int nutDiff = plant.CurrentNutrients - nutTarget;
-            int waterDiff = plant.CurrentWater - waterTarget;
+            int sunDiff = currentSun - sunTarget;
+            int nutDiff = currentNut - nutTarget;
+            int waterDiff = currentWater - waterTarget;
 
             result.sunDiff = Mathf.Abs(sunDiff);
             result.nutDiff = Mathf.Abs(nutDiff);
