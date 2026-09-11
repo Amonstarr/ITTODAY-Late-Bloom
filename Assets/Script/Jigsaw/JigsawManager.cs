@@ -90,7 +90,7 @@ namespace LateBloom.Jigsaw
 
         [Header("Game Pause Setting")]
         [Tooltip("Aktifkan true jika ingin menghentikan/pause waktu game (Time.timeScale = 0) saat puzzle jigsaw aktif, dan unpause (Time.timeScale = 1) saat jigsaw selesai/ditutup.")]
-        public bool pauseGameWhenActive = true;
+        public bool pauseGameWhenActive = false;
 
         // ─────────────────────────────────────────
         //  8. PIECE & SLOT LISTS (isi manual atau auto-fetch)
@@ -634,6 +634,20 @@ namespace LateBloom.Jigsaw
             snappedCount = 0;
             isCompleted  = false;
 
+            // Auto-fetch jika list slot atau piece di Inspector masih kosong
+            if (slots.Count == 0 || pieces.Count == 0)
+            {
+                FetchSceneSlotsAndPieces();
+            }
+
+            // Pastikan Container Board dan Pieces AKTIF dan dirender di paling depan
+            if (puzzleBoardContainer != null) puzzleBoardContainer.gameObject.SetActive(true);
+            if (piecesContainer != null)
+            {
+                piecesContainer.gameObject.SetActive(true);
+                piecesContainer.SetAsLastSibling(); // Bawa kepingan ke urutan terbawah Hierarchy agar dirender di DEPAN board
+            }
+
             for (int i = 0; i < slots.Count; i++)
             {
                 if (slots[i] == null) continue;
@@ -651,16 +665,31 @@ namespace LateBloom.Jigsaw
             }
 
             for (int i = 0; i < pieces.Count; i++)
-                if (pieces[i] != null)
-                    pieces[i].Initialize(this, i);
-
-            // Load progres; jika belum ada, acak kepingan ke area scatter (hanya untuk auto mode)
-            if (!LoadProgress())
             {
-                if (!useManualSetup)
+                if (pieces[i] != null)
                 {
-                    ScatterPieces();
+                    pieces[i].gameObject.SetActive(true);
+
+                    Image img = pieces[i].GetComponent<Image>();
+                    if (img != null) img.enabled = true;
+
+                    CanvasGroup cg = pieces[i].GetComponent<CanvasGroup>();
+                    if (cg != null)
+                    {
+                        cg.alpha = 1f;
+                        cg.blocksRaycasts = true;
+                    }
+
+                    pieces[i].Initialize(this, i);
                 }
+            }
+
+            // Load progres simpanan; jika belum ada simpanan atau belum ada keping tersnap, kumpulkan kepingan di tengah
+            bool hasSavedProgress = LoadProgress();
+
+            if (!hasSavedProgress || snappedCount == 0)
+            {
+                CenterPieces();
             }
 
             UpdateProgressUI();
@@ -672,54 +701,26 @@ namespace LateBloom.Jigsaw
         }
 
         // ══════════════════════════════════════════
-        //  SCATTER PIECES
+        //  CENTER PIECES (GATHER IN MIDDLE)
         // ══════════════════════════════════════════
-        public void ScatterPieces()
+        /// <summary>
+        /// Mengumpulkan seluruh kepingan yang belum tersnap di tengah-tengah container (Vector2.zero).
+        /// </summary>
+        public void CenterPieces()
         {
-            StartCoroutine(ScatterPiecesDelayed());
-        }
-
-        private IEnumerator ScatterPiecesDelayed()
-        {
-            // Tunggu 1 frame agar Canvas layout selesai dihitung dulu
-            yield return null;
-
-            List<RectTransform> validAreas = new List<RectTransform>();
-            if (scatterAreaLeft  != null) validAreas.Add(scatterAreaLeft);
-            if (scatterAreaRight != null) validAreas.Add(scatterAreaRight);
-
-            if (validAreas.Count == 0)
+            foreach (var piece in pieces)
             {
-                Debug.LogWarning("[JigsawManager] Scatter Area Left/Right belum diisi! Kepingan berada di posisi default Canvas.");
-                yield break;
-            }
-
-            for (int i = 0; i < pieces.Count; i++)
-            {
-                if (pieces[i] == null || pieces[i].currentState == PieceState.Snapped) continue;
-
-                RectTransform targetArea = validAreas[i % validAreas.Count];
-
-                // Pakai GetWorldCorners agar dapat ukuran NYATA setelah Canvas layout
-                Vector3[] corners = new Vector3[4];
-                targetArea.GetWorldCorners(corners);
-                // corners: [0]=bottom-left [1]=top-left [2]=top-right [3]=bottom-right
-
-                float minX = corners[0].x;
-                float maxX = corners[2].x;
-                float minY = corners[0].y;
-                float maxY = corners[2].y;
-
-                if (Mathf.Approximately(minX, maxX) || Mathf.Approximately(minY, maxY))
+                if (piece != null && piece.currentState != PieceState.Snapped)
                 {
-                    Debug.LogWarning($"[JigsawManager] '{targetArea.name}' punya ukuran 0 — pastikan Width & Height diisi di RectTransform!");
-                    continue;
-                }
+                    piece.currentState = PieceState.Idle;
+                    piece.rectTransform.anchoredPosition = Vector2.zero;
 
-                float margin = 40f;
-                float rx = UnityEngine.Random.Range(minX + margin, maxX - margin);
-                float ry = UnityEngine.Random.Range(minY + margin, maxY - margin);
-                pieces[i].rectTransform.position = new Vector3(rx, ry, 0f);
+                    CanvasGroup cg = piece.GetComponent<CanvasGroup>();
+                    if (cg != null) cg.blocksRaycasts = true;
+
+                    Image img = piece.GetComponent<Image>();
+                    if (img != null) img.raycastTarget = true;
+                }
             }
         }
 
@@ -854,6 +855,7 @@ namespace LateBloom.Jigsaw
             if (puzzleMetadata != null)
             {
                 if (!puzzleMetadata.LoadFromDisk()) return false;
+                if (puzzleMetadata.pieceStates == null || puzzleMetadata.pieceStates.Count == 0) return false;
 
                 snappedCount = 0;
                 var statesCopy = puzzleMetadata.pieceStates.ToArray();

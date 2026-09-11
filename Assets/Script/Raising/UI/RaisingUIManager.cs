@@ -48,6 +48,7 @@ namespace LateBloom.Raising
 
         private void Start()
         {
+            LateBloom.Raising.UI.ActionResultPopupUI.EnsureInstanceForActiveScene();
             BindButtons();
             SubscribeEvents();
         }

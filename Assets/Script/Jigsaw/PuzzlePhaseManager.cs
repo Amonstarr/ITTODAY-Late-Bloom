@@ -204,6 +204,14 @@ namespace LateBloom.Jigsaw
                 if (jigsawManager != null)
                 {
                     jigsawManager.gameObject.SetActive(true);
+                    if (jigsawManager.piecesContainer != null)
+                    {
+                        jigsawManager.piecesContainer.gameObject.SetActive(true);
+                    }
+                    if (jigsawManager.puzzleBoardContainer != null)
+                    {
+                        jigsawManager.puzzleBoardContainer.gameObject.SetActive(true);
+                    }
                     jigsawManager.InitializePuzzle();
                 }
 

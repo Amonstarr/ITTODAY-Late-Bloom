@@ -52,6 +52,9 @@ namespace LateBloom.Jigsaw
         private Image        pieceImage;
         private JigsawManager manager;
 
+        [HideInInspector] public Vector2 initialAnchoredPosition;
+        [HideInInspector] public bool hasInitialPositionSaved = false;
+
         // ══════════════════════════════════════════
         //  UNITY LIFECYCLE
         // ══════════════════════════════════════════
@@ -62,9 +65,26 @@ namespace LateBloom.Jigsaw
             pieceImage    = GetComponent<Image>();
             canvas        = GetComponentInParent<Canvas>();
 
+            if (rectTransform != null && !hasInitialPositionSaved)
+            {
+                initialAnchoredPosition = rectTransform.anchoredPosition;
+                hasInitialPositionSaved = true;
+            }
+
             // Pastikan Raycast Target aktif agar mouse/touch bisa menarik kepingan ini
             if (pieceImage != null)
                 pieceImage.raycastTarget = true;
+        }
+
+        public void ResetToInitialPosition()
+        {
+            currentState = PieceState.Idle;
+            if (rectTransform != null && hasInitialPositionSaved)
+            {
+                rectTransform.anchoredPosition = initialAnchoredPosition;
+            }
+            if (canvasGroup != null) canvasGroup.blocksRaycasts = true;
+            if (pieceImage  != null) pieceImage.raycastTarget   = true;
         }
 
         // ══════════════════════════════════════════
@@ -85,13 +105,20 @@ namespace LateBloom.Jigsaw
             if (pieceImage != null) pieceImage.raycastTarget = (currentState != PieceState.Snapped);
         }
 
+        private Vector2 dragOffset;
+
         // ══════════════════════════════════════════
         //  DRAG & DROP HANDLERS
         // ══════════════════════════════════════════
         public void OnPointerDown(PointerEventData eventData)
         {
             if (currentState == PieceState.Snapped) return;
-            transform.SetAsLastSibling(); // Bawa kepingan ke layer paling depan
+
+            if (manager != null && manager.piecesContainer != null)
+            {
+                manager.piecesContainer.SetAsLastSibling();
+            }
+            transform.SetAsLastSibling();
         }
 
         public void OnBeginDrag(PointerEventData eventData)
@@ -101,6 +128,27 @@ namespace LateBloom.Jigsaw
             currentState = PieceState.Dragging;
             rectTransform.localScale = Vector3.one * dragScaleMultiplier;
 
+            if (manager != null && manager.piecesContainer != null)
+            {
+                manager.piecesContainer.SetAsLastSibling();
+            }
+            transform.SetAsLastSibling();
+
+            RectTransform parentRect = rectTransform.parent as RectTransform;
+            if (parentRect != null)
+            {
+                Canvas parentCanvas = canvas != null ? canvas : GetComponentInParent<Canvas>();
+                Camera cam = (parentCanvas != null && parentCanvas.renderMode != RenderMode.ScreenSpaceOverlay) ? parentCanvas.worldCamera : null;
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, eventData.position, cam, out Vector2 localPointer))
+                {
+                    dragOffset = rectTransform.anchoredPosition - localPointer;
+                }
+                else
+                {
+                    dragOffset = Vector2.zero;
+                }
+            }
+
             manager?.OnPiecePickup();
         }
 
@@ -108,11 +156,15 @@ namespace LateBloom.Jigsaw
         {
             if (currentState == PieceState.Snapped) return;
 
-            Vector3 worldPoint;
-            if (RectTransformUtility.ScreenPointToWorldPointInRectangle(
-                    rectTransform, eventData.position, eventData.pressEventCamera, out worldPoint))
+            RectTransform parentRect = rectTransform.parent as RectTransform;
+            if (parentRect != null)
             {
-                rectTransform.position = worldPoint;
+                Canvas parentCanvas = canvas != null ? canvas : GetComponentInParent<Canvas>();
+                Camera cam = (parentCanvas != null && parentCanvas.renderMode != RenderMode.ScreenSpaceOverlay) ? parentCanvas.worldCamera : null;
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parentRect, eventData.position, cam, out Vector2 localPointer))
+                {
+                    rectTransform.anchoredPosition = localPointer + dragOffset;
+                }
             }
 
             manager?.CheckHoverSlot(this);

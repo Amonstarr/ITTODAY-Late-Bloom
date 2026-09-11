@@ -47,16 +47,32 @@ namespace LateBloom.Raising.UI
         private bool pointerMustBeReleased;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void EnsureRuntimeInstance()
+        private static void RegisterSceneLoadedListener()
         {
-            if (Instance == null)
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded -= OnSceneLoaded;
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += OnSceneLoaded;
+            EnsureInstanceForActiveScene();
+        }
+
+        private static void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
+        {
+            EnsureInstanceForActiveScene();
+        }
+
+        public static void EnsureInstanceForActiveScene()
+        {
+            if (Instance == null || Instance.gameObject == null)
             {
                 Canvas canvas = null;
                 GameObject canvasObj = GameObject.Find("UI Canvas");
                 if (canvasObj != null) canvas = canvasObj.GetComponent<Canvas>();
                 if (canvas == null)
                 {
+#if UNITY_2023_1_OR_NEWER
                     canvas = Object.FindFirstObjectByType<Canvas>();
+#else
+                    canvas = Object.FindObjectOfType<Canvas>();
+#endif
                 }
 
                 if (canvas != null)
