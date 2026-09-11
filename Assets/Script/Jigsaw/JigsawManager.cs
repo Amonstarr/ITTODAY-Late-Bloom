@@ -47,11 +47,8 @@ namespace LateBloom.Jigsaw
         [Tooltip("Foto Utuh Kenangan (Texture2D)")]
         public Texture2D puzzlePhotoTexture;
 
-        [Tooltip("Pilih bentuk kepingan: Kotak atau Klasik Jigsaw")]
-        public PieceShapeStyle shapeStyle = PieceShapeStyle.JigsawInterlocking;
-
-        [Range(2, 10)] public int gridRows = 3;
-        [Range(2, 10)] public int gridCols = 3;
+        public const int gridRows = 2;
+        public const int gridCols = 2;
 
         // ─────────────────────────────────────────
         //  4. BOARD & PIECE CONTAINERS
@@ -191,8 +188,20 @@ namespace LateBloom.Jigsaw
             if (manualBackground == null)
                 Debug.LogWarning("[JigsawManager] Manual Setup: 'Manual Background' belum diisi (opsional, tapi disarankan).");
 
+            if (slots.Count < 4)
+            {
+                Debug.LogWarning($"[JigsawManager] Manual Setup: Hanya ditemukan {slots.Count} Slot di scene! Dibutuhkan 4 Slot (Slot_0, Slot_1, Slot_2, Slot_3) untuk puzzle 2x2.");
+                ok = false;
+            }
+
+            if (pieces.Count < 4)
+            {
+                Debug.LogWarning($"[JigsawManager] Manual Setup: Hanya ditemukan {pieces.Count} Piece di scene! Dibutuhkan 4 Piece (Piece_0, Piece_1, Piece_2, Piece_3) untuk puzzle 2x2.");
+                ok = false;
+            }
+
             if (ok)
-                Debug.Log("[JigsawManager] ✅ Manual Setup: Semua referensi wajib sudah terisi dengan benar!");
+                Debug.Log("[JigsawManager] ✅ Manual Setup: Semua referensi wajib & 4 keping puzzle sudah terisi dengan benar!");
         }
 
         // ══════════════════════════════════════════
@@ -207,19 +216,24 @@ namespace LateBloom.Jigsaw
             slots.Clear();
             pieces.Clear();
 
-            // ── Ambil Slots ──────────────────────
+            // ── Ambil Slots (Maksimal 4) ──────────────────────
             if (puzzleBoardContainer != null)
             {
                 JigsawSlot[] foundSlots = puzzleBoardContainer.GetComponentsInChildren<JigsawSlot>(true);
 
-                if (foundSlots.Length == 0)
+                // Jika ada sisa kepingan lama > 4 (misal sisa 9 keping), hapus sisa kepingan 4-8
+                if (foundSlots.Length > 4)
                 {
-                    Canvas parentCanvas = puzzleBoardContainer.GetComponentInParent<Canvas>();
-                    if (parentCanvas != null)
-                        foundSlots = parentCanvas.GetComponentsInChildren<JigsawSlot>(true);
+                    for (int i = foundSlots.Length - 1; i >= 4; i--)
+                    {
+                        if (Application.isEditor && !Application.isPlaying)
+                            DestroyImmediate(foundSlots[i].gameObject);
+                        else
+                            Destroy(foundSlots[i].gameObject);
+                    }
+                    foundSlots = puzzleBoardContainer.GetComponentsInChildren<JigsawSlot>(true);
                 }
 
-                // Jika manual setup dinonaktifkan dan tidak ada slot, generate otomatis
                 if (foundSlots.Length == 0 && !useManualSetup)
                 {
                     GenerateBoardSlots();
@@ -228,21 +242,37 @@ namespace LateBloom.Jigsaw
                 else if (foundSlots.Length == 0 && useManualSetup)
                 {
                     Debug.LogWarning("[JigsawManager] Manual Setup: Tidak ada JigsawSlot di dalam Board Container! " +
-                                     "Tambahkan child GameObject dengan komponen JigsawSlot secara manual di Scene.");
+                                     "Tambahkan 4 child GameObject dengan komponen JigsawSlot secara manual di Scene.");
                 }
 
-                for (int i = 0; i < foundSlots.Length; i++)
+                int count = Mathf.Min(foundSlots.Length, 4);
+                for (int i = 0; i < count; i++)
                 {
                     foundSlots[i].pieceId = i;
                     slots.Add(foundSlots[i]);
                 }
             }
 
-            // ── Ambil Pieces ─────────────────────
+            // ── Ambil Pieces (Maksimal 4) ─────────────────────
             if (piecesContainer != null)
             {
                 JigsawPiece[] foundPieces = piecesContainer.GetComponentsInChildren<JigsawPiece>(true);
-                for (int i = 0; i < foundPieces.Length; i++)
+
+                // Jika ada sisa kepingan lama > 4 (misal sisa 9 keping), hapus sisa kepingan 4-8
+                if (foundPieces.Length > 4)
+                {
+                    for (int i = foundPieces.Length - 1; i >= 4; i--)
+                    {
+                        if (Application.isEditor && !Application.isPlaying)
+                            DestroyImmediate(foundPieces[i].gameObject);
+                        else
+                            Destroy(foundPieces[i].gameObject);
+                    }
+                    foundPieces = piecesContainer.GetComponentsInChildren<JigsawPiece>(true);
+                }
+
+                int count = Mathf.Min(foundPieces.Length, 4);
+                for (int i = 0; i < count; i++)
                 {
                     foundPieces[i].pieceId = i;
                     pieces.Add(foundPieces[i]);
@@ -275,6 +305,42 @@ namespace LateBloom.Jigsaw
             Debug.Log($"[JigsawManager] Berhasil mengambil {slots.Count} Slot dan {pieces.Count} Piece dari Scene.");
         }
 
+        /// <summary>
+        /// Menghapus Slot dan Piece berlebih di Scene Hierarchy jika lebih dari target 4 keping (index >= 4).
+        /// </summary>
+        [ContextMenu("Trim Extra Scene Slots & Pieces (Keep 4 Only)")]
+        public void TrimExtraSlotsAndPiecesTo4()
+        {
+            int targetCount = gridRows * gridCols; // 2x2 = 4
+
+            if (puzzleBoardContainer != null)
+            {
+                JigsawSlot[] foundSlots = puzzleBoardContainer.GetComponentsInChildren<JigsawSlot>(true);
+                for (int i = foundSlots.Length - 1; i >= targetCount; i--)
+                {
+                    if (Application.isEditor && !Application.isPlaying)
+                        DestroyImmediate(foundSlots[i].gameObject);
+                    else
+                        Destroy(foundSlots[i].gameObject);
+                }
+            }
+
+            if (piecesContainer != null)
+            {
+                JigsawPiece[] foundPieces = piecesContainer.GetComponentsInChildren<JigsawPiece>(true);
+                for (int i = foundPieces.Length - 1; i >= targetCount; i--)
+                {
+                    if (Application.isEditor && !Application.isPlaying)
+                        DestroyImmediate(foundPieces[i].gameObject);
+                    else
+                        Destroy(foundPieces[i].gameObject);
+                }
+            }
+
+            FetchSceneSlotsAndPieces();
+            Debug.Log($"[JigsawManager] Berhasil merapikan Scene. Tersisa {slots.Count} Slot dan {pieces.Count} Piece.");
+        }
+
         // ══════════════════════════════════════════
         //  AUTO-GENERATE BOARD SLOTS (non-manual saja)
         // ══════════════════════════════════════════
@@ -302,9 +368,7 @@ namespace LateBloom.Jigsaw
                     Destroy(oldSlots[i].gameObject);
             }
 
-            int totalPieces = pieces.Count > 0 ? pieces.Count : (gridRows * gridCols);
-            int side = Mathf.RoundToInt(Mathf.Sqrt(totalPieces));
-            if (side * side == totalPieces) { gridRows = side; gridCols = side; }
+            int totalPieces = gridRows * gridCols;
 
             Vector2 boardSize = puzzleBoardContainer.rect.width > 0
                 ? puzzleBoardContainer.rect.size : new Vector2(480f, 480f);
@@ -466,18 +530,8 @@ namespace LateBloom.Jigsaw
                 }
             }
 
-            int total = pieces.Count;
-            int side = Mathf.RoundToInt(Mathf.Sqrt(total));
-            if (side * side == total) { gridRows = side; gridCols = side; }
-
             float baseTexW = (float)puzzlePhotoTexture.width  / gridCols;
             float baseTexH = (float)puzzlePhotoTexture.height / gridRows;
-
-            int[,] horizEdges = new int[gridRows + 1, gridCols];
-            int[,] vertEdges  = new int[gridRows, gridCols + 1];
-
-            if (shapeStyle == PieceShapeStyle.JigsawInterlocking)
-                GenerateInterlockingEdgeData(horizEdges, vertEdges);
 
             for (int i = 0; i < pieces.Count; i++)
             {
@@ -489,40 +543,12 @@ namespace LateBloom.Jigsaw
                 int r = i / gridCols;
                 int c = i % gridCols;
 
-                Sprite pieceSprite;
-
-                if (shapeStyle == PieceShapeStyle.JigsawInterlocking)
-                {
-                    float padX = baseTexW * 0.25f;
-                    float padY = baseTexH * 0.25f;
-
-                    float texX = c * baseTexW - padX;
-                    float texY = (gridRows - 1 - r) * baseTexH - padY;
-                    float croppedW = baseTexW + padX * 2f;
-                    float croppedH = baseTexH + padY * 2f;
-
-                    Rect cropRect = new Rect(texX, texY, croppedW, croppedH);
-                    Texture2D croppedTex = CropTextureWithBorderPadding(puzzlePhotoTexture, cropRect);
-
-                    int topEdge    = horizEdges[Mathf.Clamp(r,     0, gridRows),     Mathf.Clamp(c,     0, gridCols - 1)];
-                    int rightEdge  = vertEdges [Mathf.Clamp(r,     0, gridRows - 1), Mathf.Clamp(c + 1, 0, gridCols)];
-                    int bottomEdge = horizEdges[Mathf.Clamp(r + 1, 0, gridRows),     Mathf.Clamp(c,     0, gridCols - 1)];
-                    int leftEdge   = vertEdges [Mathf.Clamp(r,     0, gridRows - 1), Mathf.Clamp(c,     0, gridCols)];
-
-                    Texture2D jigsawTex = ApplyJigsawInterlockingMaskPadded(croppedTex, padX, padY,
-                        topEdge, rightEdge, bottomEdge, leftEdge);
-                    pieceSprite = Sprite.Create(jigsawTex,
-                        new Rect(0, 0, jigsawTex.width, jigsawTex.height), new Vector2(0.5f, 0.5f));
-                }
-                else
-                {
-                    float texX = c * baseTexW;
-                    float texY = (gridRows - 1 - r) * baseTexH;
-                    Rect cropRect = new Rect(texX, texY, baseTexW, baseTexH);
-                    Texture2D croppedTex = CropTexture(puzzlePhotoTexture, cropRect);
-                    pieceSprite = Sprite.Create(croppedTex,
-                        new Rect(0, 0, croppedTex.width, croppedTex.height), new Vector2(0.5f, 0.5f));
-                }
+                float texX = c * baseTexW;
+                float texY = (gridRows - 1 - r) * baseTexH;
+                Rect cropRect = new Rect(texX, texY, baseTexW, baseTexH);
+                Texture2D croppedTex = CropTexture(puzzlePhotoTexture, cropRect);
+                Sprite pieceSprite = Sprite.Create(croppedTex,
+                    new Rect(0, 0, croppedTex.width, croppedTex.height), new Vector2(0.5f, 0.5f));
 
                 Image pieceImg = pieces[i].GetComponent<Image>();
                 if (pieceImg != null)
@@ -532,21 +558,7 @@ namespace LateBloom.Jigsaw
                 }
             }
 
-            Debug.Log($"[JigsawManager] Foto '{puzzlePhotoTexture.name}' berhasil dipotong menjadi {pieces.Count} kepingan.");
-        }
-
-        // ══════════════════════════════════════════
-        //  INTERLOCKING EDGE HELPERS
-        // ══════════════════════════════════════════
-        private void GenerateInterlockingEdgeData(int[,] horizEdges, int[,] vertEdges)
-        {
-            for (int r = 1; r < gridRows; r++)
-                for (int c = 0; c < gridCols; c++)
-                    horizEdges[r, c] = UnityEngine.Random.value > 0.5f ? 1 : -1;
-
-            for (int r = 0; r < gridRows; r++)
-                for (int c = 1; c < gridCols; c++)
-                    vertEdges[r, c] = UnityEngine.Random.value > 0.5f ? 1 : -1;
+            Debug.Log($"[JigsawManager] Foto '{puzzlePhotoTexture.name}' berhasil dipotong menjadi {pieces.Count} kepingan persegi.");
         }
 
         private Texture2D CropTexture(Texture2D source, Rect cropRect)
@@ -558,111 +570,6 @@ namespace LateBloom.Jigsaw
 
             Texture2D result = new Texture2D(width, height, TextureFormat.RGBA32, false);
             Color[] pixels = source.GetPixels(x, y, width, height);
-            result.SetPixels(pixels);
-            result.Apply();
-            return result;
-        }
-
-        private Texture2D CropTextureWithBorderPadding(Texture2D source, Rect cropRect)
-        {
-            int width  = Mathf.FloorToInt(cropRect.width);
-            int height = Mathf.FloorToInt(cropRect.height);
-            int srcX   = Mathf.FloorToInt(cropRect.x);
-            int srcY   = Mathf.FloorToInt(cropRect.y);
-
-            Texture2D result = new Texture2D(width, height, TextureFormat.RGBA32, false);
-            Color[] pixels = new Color[width * height];
-
-            if (!source.isReadable)
-                Debug.LogError($"[JigsawManager] Texture '{source.name}' belum dicentang 'Read/Write Enabled'! " +
-                               "Buka file gambar di Inspector → Advanced → centang 'Read/Write Enabled' → Apply.");
-
-            try
-            {
-                for (int y = 0; y < height; y++)
-                    for (int x = 0; x < width; x++)
-                    {
-                        int realX = srcX + x;
-                        int realY = srcY + y;
-                        pixels[y * width + x] = (realX >= 0 && realX < source.width && realY >= 0 && realY < source.height)
-                            ? source.GetPixel(realX, realY)
-                            : new Color(0, 0, 0, 0);
-                    }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning($"[JigsawManager] Gagal membaca pixel texture. Pastikan 'Read/Write Enabled' dicentang! Detail: {ex.Message}");
-            }
-
-            result.SetPixels(pixels);
-            result.Apply();
-            return result;
-        }
-
-        private Texture2D ApplyJigsawInterlockingMaskPadded(Texture2D source, float padX, float padY,
-            int top, int right, int bottom, int left)
-        {
-            int w = source.width;
-            int h = source.height;
-
-            Texture2D result = new Texture2D(w, h, TextureFormat.RGBA32, false);
-            Color[] pixels = source.GetPixels();
-
-            float innerLeft   = padX;
-            float innerRight  = w - padX;
-            float innerBottom = padY;
-            float innerTop    = h - padY;
-            float innerW = innerRight - innerLeft;
-            float innerH = innerTop - innerBottom;
-
-            float knobRadius = Mathf.Min(innerW, innerH) * 0.16f;
-
-            Vector2 topCenter    = new Vector2(innerLeft + innerW * 0.5f, innerTop);
-            Vector2 bottomCenter = new Vector2(innerLeft + innerW * 0.5f, innerBottom);
-            Vector2 rightCenter  = new Vector2(innerRight, innerBottom + innerH * 0.5f);
-            Vector2 leftCenter   = new Vector2(innerLeft,  innerBottom + innerH * 0.5f);
-
-            for (int y = 0; y < h; y++)
-            {
-                for (int x = 0; x < w; x++)
-                {
-                    int index = y * w + x;
-                    Color c = pixels[index];
-                    Vector2 pt = new Vector2(x, y);
-                    bool keepPixel = true;
-
-                    bool insideBaseRect = (x >= innerLeft && x <= innerRight && y >= innerBottom && y <= innerTop);
-
-                    float distTop    = Vector2.Distance(pt, topCenter);
-                    float distBottom = Vector2.Distance(pt, bottomCenter);
-                    float distRight  = Vector2.Distance(pt, rightCenter);
-                    float distLeft   = Vector2.Distance(pt, leftCenter);
-
-                    // Top edge
-                    if      (top ==  1 && distTop <= knobRadius)               keepPixel = true;
-                    else if (top == -1 && distTop <= knobRadius && insideBaseRect) keepPixel = false;
-                    else if (top !=  1 && y > innerTop)                        keepPixel = false;
-
-                    // Bottom edge
-                    if      (bottom ==  1 && distBottom <= knobRadius)               keepPixel = true;
-                    else if (bottom == -1 && distBottom <= knobRadius && insideBaseRect) keepPixel = false;
-                    else if (bottom !=  1 && y < innerBottom)                        keepPixel = false;
-
-                    // Right edge
-                    if      (right ==  1 && distRight <= knobRadius)               keepPixel = true;
-                    else if (right == -1 && distRight <= knobRadius && insideBaseRect) keepPixel = false;
-                    else if (right !=  1 && x > innerRight)                        keepPixel = false;
-
-                    // Left edge
-                    if      (left ==  1 && distLeft <= knobRadius)               keepPixel = true;
-                    else if (left == -1 && distLeft <= knobRadius && insideBaseRect) keepPixel = false;
-                    else if (left !=  1 && x < innerLeft)                        keepPixel = false;
-
-                    if (!keepPixel) c.a = 0f;
-                    pixels[index] = c;
-                }
-            }
-
             result.SetPixels(pixels);
             result.Apply();
             return result;

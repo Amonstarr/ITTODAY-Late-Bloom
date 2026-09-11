@@ -6,8 +6,7 @@ namespace LateBloom.Jigsaw
 {
     public enum PieceShapeStyle
     {
-        SquareGrid,           // Potongan grid kotak lurus biasa
-        JigsawInterlocking    // Potongan klasik Jigsaw (Benjolan & Lekukan Interlocking)
+        SquareGrid            // Potongan grid kotak lurus biasa (2x2 = 4 Pieces)
     }
 
     [Serializable]
@@ -41,9 +40,8 @@ namespace LateBloom.Jigsaw
         public Sprite boardFrameSprite;
 
         [Header("Phase Configuration")]
-        public int seedStagePieces = 4;
-        public int budStagePieces = 4;
-        public int bloomStagePieces = 8;
+        [Tooltip("Total kepingan puzzle (Fixed 4 keping untuk 4 fase pertumbuhan)")]
+        public int totalPuzzlePieces = 4;
 
         [Header("Saved State (Runtime Data)")]
         public FlowerGrowthStage currentStage = FlowerGrowthStage.Seed;

@@ -34,18 +34,15 @@ namespace LateBloom.Jigsaw
             else
             {
                 EditorGUILayout.HelpBox(
-                    "MODE AUTO-GENERATE AKTIF\n" +
-                    "• Board dan kepingan dibuat otomatis dari foto sumber.\n" +
+                    "MODE AUTO-GENERATE AKTIF (4-Piece Square Grid)\n" +
+                    "• Board dan 4 kepingan persegi dibuat otomatis dari foto sumber.\n" +
                     "• Pastikan 'Puzzle Photo Texture' diisi dan gambar bertanda Read/Write Enabled.",
                     MessageType.Info);
 
                 EditorGUILayout.Space(4);
-                EditorGUILayout.LabelField("── Photo & Grid (Auto) ──", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("── Photo (Fixed 4 Pieces 2x2 Grid) ──", EditorStyles.boldLabel);
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("puzzlePhotoSprite"));
                 EditorGUILayout.PropertyField(serializedObject.FindProperty("puzzlePhotoTexture"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("shapeStyle"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("gridRows"));
-                EditorGUILayout.PropertyField(serializedObject.FindProperty("gridCols"));
             }
 
             // ── SHARED FIELDS ────────────────────
@@ -87,6 +84,33 @@ namespace LateBloom.Jigsaw
             // ── BUTTONS ──────────────────────────
             EditorGUILayout.Space(12);
             EditorGUILayout.LabelField("── Editor Actions ──", EditorStyles.boldLabel);
+
+            if (mgr.pieces.Count > 4 || mgr.slots.Count > 4)
+            {
+                EditorGUILayout.Space(4);
+                EditorGUILayout.HelpBox(
+                    $"DITEMUKAN {mgr.pieces.Count} PIECE / {mgr.slots.Count} SLOT DI SCENE!\n" +
+                    "• Target puzzle baru adalah FIXED 4 KEPING (2x2).\n" +
+                    "• Di Scene Hierarchy kamu masih ada sisa sisa GameObject Slot/Piece dari layout 3x3 lama.\n" +
+                    "• Klik tombol '🧹 Trim Extra Scene Slots & Pieces (Keep 4 Only)' di bawah untuk menyisakan 4 kepingan pertama saja.",
+                    MessageType.Warning);
+
+                GUI.backgroundColor = new Color(1.0f, 0.7f, 0.3f);
+                if (GUILayout.Button("🧹 Trim Extra Scene Slots & Pieces (Keep 4 Only)", GUILayout.Height(36)))
+                {
+                    mgr.TrimExtraSlotsAndPiecesTo4();
+                }
+                GUI.backgroundColor = Color.white;
+            }
+            else if (mgr.pieces.Count < 4 || mgr.slots.Count < 4)
+            {
+                EditorGUILayout.Space(4);
+                EditorGUILayout.HelpBox(
+                    $"PERINGATAN: HANYA DITEMUKAN {mgr.slots.Count} SLOT DAN {mgr.pieces.Count} PIECE DI SCENE!\n" +
+                    "• Untuk puzzle 2x2, dibutuhkan tepat 4 Slot (Slot_0..3) dan 4 Piece (Piece_0..3).\n" +
+                    "• Silakan tambahkan Slot/Piece yang kurang di Scene Hierarchy, atau jika pakai Mode Auto klik 'Generate Pieces (Auto)'.",
+                    MessageType.Warning);
+            }
 
             if (mgr.useManualSetup)
             {
