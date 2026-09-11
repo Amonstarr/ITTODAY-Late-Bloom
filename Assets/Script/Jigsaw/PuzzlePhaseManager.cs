@@ -6,10 +6,10 @@ namespace LateBloom.Jigsaw
 {
     public enum FlowerGrowthStage
     {
-        Seed = 0,         // Fase 1: Benih (dapat saat pilih bunga) -> +1 Keping (1/4)
-        SmallGrowth = 1,  // Fase 2: Tumbuh dikit -> +1 Keping (2/4)
-        BigGrowth = 2,    // Fase 3: Tumbuh gede -> +1 Keping (3/4)
-        Bloom = 3         // Fase 4: Berbunga -> +1 Keping (4/4 & Board Unlocked)
+        Seed = 0,
+        Sprout = 1,
+        Bud = 2,
+        Bloom = 3
     }
 
     public class PuzzlePhaseManager : MonoBehaviour
@@ -19,24 +19,33 @@ namespace LateBloom.Jigsaw
         [Header("Metadata Reference (Optional)")]
         public PuzzleMetadata puzzleMetadata;
 
+        [Header("Phase Piece Configuration (Configurable in Inspector)")]
+        [Tooltip("Jumlah kepingan yang didapat saat fase Seed (Benih)")]
+        public int seedStagePieces = 4;
+
+        [Tooltip("Jumlah kepingan yang didapat saat fase Sprout (Tunas)")]
+        public int sproutStagePieces = 4;
+
+        [Tooltip("Jumlah kepingan yang didapat saat fase Bud (Kuncup)")]
+        public int budStagePieces = 4;
+
+        [Tooltip("Jumlah kepingan yang didapat saat fase Bloom (Mekar)")]
+        public int bloomStagePieces = 4;
+
         [Header("Current Status")]
         public FlowerGrowthStage currentStage = FlowerGrowthStage.Seed;
-        [SerializeField] private int totalPiecesCollected = 1;
+        [SerializeField] private int totalPiecesCollected = 0;
         [SerializeField] private bool isPuzzleUnlocked = false;
 
         [Header("References")]
         public JigsawManager jigsawManager;
         public GameObject puzzleUIContainer;
-        public PuzzlePieceAwardedUI pieceAwardedCutsceneUI;
 
         [Header("Events")]
-        [Tooltip("Event saat mendapatkan keping puzzle baru: (pieceIndex, totalPieces, stageName)")]
-        public UnityEvent<int, int, string> onPieceAwardedCutscene;
-        [Tooltip("Event kompatibilitas (addedPieces, totalPieces)")]
         public UnityEvent<int, int> onPiecesAwarded;
         public UnityEvent onPuzzleUnlocked;
 
-        public const int TotalTargetPieces = 4;
+        public int TotalTargetPieces => seedStagePieces + sproutStagePieces + budStagePieces + bloomStagePieces;
         public int TotalPiecesCollected => totalPiecesCollected;
         public bool IsPuzzleUnlocked => isPuzzleUnlocked;
 
@@ -70,12 +79,12 @@ namespace LateBloom.Jigsaw
         private void Update()
         {
             // ── TEST SHORTCUTS (Editor Only) ──────────────────
-            // N = Advance ke fase berikutnya (Seed → SmallGrowth → BigGrowth → Bloom)
+            // N = Advance ke fase berikutnya (Seed → Sprout → Bud → Bloom)
             // R = Reset ke fase Seed
             if (UnityEngine.Input.GetKeyDown(KeyCode.N))
             {
                 AdvanceGrowthStage();
-                Debug.Log($"[TEST] Stage sekarang: {currentStage} ({GetStageDisplayName(currentStage)})");
+                Debug.Log($"[TEST] Stage sekarang: {currentStage}");
             }
             if (UnityEngine.Input.GetKeyDown(KeyCode.R))
             {
@@ -107,7 +116,10 @@ namespace LateBloom.Jigsaw
         {
             if (puzzleMetadata != null)
             {
-                // Metadata loaded
+                seedStagePieces = puzzleMetadata.seedStagePieces;
+                sproutStagePieces = puzzleMetadata.sproutStagePieces;
+                budStagePieces = puzzleMetadata.budStagePieces;
+                bloomStagePieces = puzzleMetadata.bloomStagePieces;
             }
         }
 
@@ -123,50 +135,45 @@ namespace LateBloom.Jigsaw
         {
             if (currentStage == FlowerGrowthStage.Seed)
             {
-                SetGrowthStage(FlowerGrowthStage.SmallGrowth);
+                SetGrowthStage(FlowerGrowthStage.Sprout);
             }
-            else if (currentStage == FlowerGrowthStage.SmallGrowth)
+            else if (currentStage == FlowerGrowthStage.Sprout)
             {
-                SetGrowthStage(FlowerGrowthStage.BigGrowth);
+                SetGrowthStage(FlowerGrowthStage.Bud);
             }
-            else if (currentStage == FlowerGrowthStage.BigGrowth)
+            else if (currentStage == FlowerGrowthStage.Bud)
             {
                 SetGrowthStage(FlowerGrowthStage.Bloom);
-            }
-        }
-
-        public static string GetStageDisplayName(FlowerGrowthStage stage)
-        {
-            switch (stage)
-            {
-                case FlowerGrowthStage.Seed:        return "Benih (Seed)";
-                case FlowerGrowthStage.SmallGrowth: return "Tumbuh Dikit";
-                case FlowerGrowthStage.BigGrowth:   return "Tumbuh Gede";
-                case FlowerGrowthStage.Bloom:       return "Berbunga (Bloom)";
-                default: return stage.ToString();
             }
         }
 
         private void RecalculateCollectedPieces()
         {
             int previousCount = totalPiecesCollected;
-            
-            // Setiap fase memberikan 1 keping (Seed=1, SmallGrowth=2, BigGrowth=3, Bloom=4)
-            totalPiecesCollected = (int)currentStage + 1;
+            totalPiecesCollected = 0;
+
+            if (currentStage >= FlowerGrowthStage.Seed)
+            {
+                totalPiecesCollected += seedStagePieces;
+            }
+            if (currentStage >= FlowerGrowthStage.Sprout)
+            {
+                totalPiecesCollected += sproutStagePieces;
+            }
+            if (currentStage >= FlowerGrowthStage.Bud)
+            {
+                totalPiecesCollected += budStagePieces;
+            }
+            if (currentStage >= FlowerGrowthStage.Bloom)
+            {
+                totalPiecesCollected += bloomStagePieces;
+            }
 
             int added = totalPiecesCollected - previousCount;
             if (added > 0)
             {
-                string stageName = GetStageDisplayName(currentStage);
                 onPiecesAwarded?.Invoke(added, totalPiecesCollected);
-                onPieceAwardedCutscene?.Invoke(totalPiecesCollected, TotalTargetPieces, stageName);
-
-                if (pieceAwardedCutsceneUI != null)
-                {
-                    pieceAwardedCutsceneUI.ShowPieceAwardedPanel(totalPiecesCollected, TotalTargetPieces, stageName);
-                }
-
-                Debug.Log($"[PuzzlePhaseManager] Bunga mencapai fase '{stageName}'! Mendapatkan Keping Puzzle #{totalPiecesCollected}/{TotalTargetPieces}");
+                Debug.Log($"[PuzzlePhaseManager] Bunga mencapai fase {currentStage}! Mendapatkan +{added} keping. Total keping: {totalPiecesCollected}/{TotalTargetPieces}");
             }
         }
 
@@ -188,7 +195,7 @@ namespace LateBloom.Jigsaw
                     jigsawManager.InitializePuzzle();
                 }
 
-                Debug.Log("[PuzzlePhaseManager] Bunga mekar penuh (Bloom)! Semua 4 keping puzzle didapatkan & Puzzle Flashback dapat dimainkan.");
+                Debug.Log("[PuzzlePhaseManager] Bunga mekar penuh (Bloom)! Puzzle Flashback sekarang dapat dimainkan.");
             }
             else
             {
@@ -247,7 +254,7 @@ namespace LateBloom.Jigsaw
                 PlayerPrefs.DeleteKey(key);
             }
             currentStage = FlowerGrowthStage.Seed;
-            totalPiecesCollected = 1;
+            RecalculateCollectedPieces();
             ApplyCurrentStageStatus();
         }
     }

@@ -2,5 +2,7 @@ public enum ItemType
 {
     Water,
     Fertilizer,
-    Sunlight
+    Sunlight,
+    Tea,
+    Radio
 }
