@@ -133,7 +133,7 @@ namespace LateBloom.Jigsaw
         // ══════════════════════════════════════════
         //  SNAP
         // ══════════════════════════════════════════
-        public void SnapToSlot(JigsawSlot slot)
+        public void SnapToSlot(JigsawSlot slot, bool triggerEvents = true)
         {
             if (slot == null) return;
 
@@ -146,7 +146,10 @@ namespace LateBloom.Jigsaw
             rectTransform.localScale = Vector3.one * idleScale;
             slot.SetOccupied(true);
 
-            manager?.OnPieceSnapped(this);
+            if (triggerEvents)
+            {
+                manager?.OnPieceSnapped(this);
+            }
         }
 
         // ══════════════════════════════════════════
@@ -158,7 +161,7 @@ namespace LateBloom.Jigsaw
 
             if (isSnapped && slot != null)
             {
-                SnapToSlot(slot);
+                SnapToSlot(slot, false);
             }
             else
             {

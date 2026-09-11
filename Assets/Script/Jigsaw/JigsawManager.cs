@@ -838,7 +838,8 @@ namespace LateBloom.Jigsaw
                 if (!puzzleMetadata.LoadFromDisk()) return false;
 
                 snappedCount = 0;
-                foreach (var pieceState in puzzleMetadata.pieceStates)
+                var statesCopy = puzzleMetadata.pieceStates.ToArray();
+                foreach (var pieceState in statesCopy)
                 {
                     if (pieceState.id < 0 || pieceState.id >= pieces.Count) continue;
                     JigsawPiece piece = pieces[pieceState.id];
@@ -847,6 +848,7 @@ namespace LateBloom.Jigsaw
                     if (pieceState.isSnapped) snappedCount++;
                 }
                 isCompleted = puzzleMetadata.isCompleted;
+                UpdateProgressUI();
                 return true;
             }
 
@@ -857,7 +859,8 @@ namespace LateBloom.Jigsaw
             if (data == null || data.pieceStates == null) return false;
 
             snappedCount = 0;
-            foreach (var pieceState in data.pieceStates)
+            var playerPrefsStatesCopy = data.pieceStates.ToArray();
+            foreach (var pieceState in playerPrefsStatesCopy)
             {
                 if (pieceState.id < 0 || pieceState.id >= pieces.Count) continue;
                 JigsawPiece piece = pieces[pieceState.id];
@@ -866,6 +869,7 @@ namespace LateBloom.Jigsaw
                 if (pieceState.isSnapped) snappedCount++;
             }
             isCompleted = data.isCompleted;
+            UpdateProgressUI();
             return true;
         }
 
