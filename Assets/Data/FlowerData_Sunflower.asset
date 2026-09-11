@@ -18,7 +18,7 @@ MonoBehaviour:
   flowerColor: Kuning
   narrativeTheme: Kesetiaan yang salah arah. MC membangun rumah sebagai bentuk cinta,
     tapi lupa hadir di dalamnya.
-  puzzleMetadata: {fileID: 11400000, guid: 41fa7b147f2ea7e47b888c80eb43f488, type: 2}
+  puzzleMetadata: {fileID: 11400000, guid: 8d9643139f365ea4e80d0c1a18c91bc5, type: 2}
   phaseRequirements:
   - stage: 0
     targetSunlight: 30

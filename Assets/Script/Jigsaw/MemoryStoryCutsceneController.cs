@@ -127,6 +127,7 @@ namespace LateBloom.Jigsaw
 
         public void HidePanel()
         {
+            Time.timeScale = 1f;
             if (memoryPanelRoot == null) return;
 
             if (memoryCanvasGroup != null && gameObject.activeInHierarchy)
@@ -142,7 +143,8 @@ namespace LateBloom.Jigsaw
 
         private IEnumerator LoadFlashbackSceneRoutine()
         {
-            yield return new WaitForSeconds(delayBeforeSceneLoad);
+            Time.timeScale = 1f;
+            yield return new WaitForSecondsRealtime(delayBeforeSceneLoad);
             if (!string.IsNullOrEmpty(flashbackSceneName))
             {
                 SceneManager.LoadScene(flashbackSceneName);
@@ -157,7 +159,7 @@ namespace LateBloom.Jigsaw
 
             while (elapsed < duration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 memoryCanvasGroup.alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
                 yield return null;
             }

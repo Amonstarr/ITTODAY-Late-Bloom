@@ -16,14 +16,30 @@ MonoBehaviour:
   instanceId: instance_01
   flowerName: Bunga Matahari
   puzzlePhotoSprite: {fileID: 0}
-  puzzlePhotoTexture: {fileID: 0}
+  puzzlePhotoTexture: {fileID: 2800000, guid: 171e418a0d8bdb84693e73583284bf0b, type: 3}
   backgroundSprite: {fileID: 0}
   boardFrameSprite: {fileID: 0}
   seedStagePieces: 4
   sproutStagePieces: 4
   budStagePieces: 4
   bloomStagePieces: 4
-  currentStage: 0
-  isUnlocked: 0
+  currentStage: 3
+  isUnlocked: 1
   isCompleted: 0
-  pieceStates: []
+  pieceStates:
+  - id: 0
+    isSnapped: 1
+    posX: -240
+    posY: -240
+  - id: 1
+    isSnapped: 1
+    posX: -240
+    posY: -240
+  - id: 2
+    isSnapped: 1
+    posX: -240
+    posY: -240
+  - id: 3
+    isSnapped: 1
+    posX: -240
+    posY: -240

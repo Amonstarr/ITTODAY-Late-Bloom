@@ -49,6 +49,25 @@ namespace LateBloom.Jigsaw
         }
 
         /// <summary>
+        /// Adaptor untuk dipanggil langsung dari Event onPiecesAwarded (UnityEvent<int, int>).
+        /// </summary>
+        public void ShowPieceAwarded(int addedCount, int totalCollected)
+        {
+            string stageName = "Pertumbuhan";
+            if (PuzzlePhaseManager.Instance != null)
+            {
+                switch (PuzzlePhaseManager.Instance.currentStage)
+                {
+                    case FlowerGrowthStage.Seed: stageName = "Benih (Seed)"; break;
+                    case FlowerGrowthStage.Sprout: stageName = "Tunas (Sprout)"; break;
+                    case FlowerGrowthStage.Bud: stageName = "Kuncup (Bud)"; break;
+                    case FlowerGrowthStage.Bloom: stageName = "Mekar (Bloom)"; break;
+                }
+            }
+            ShowPieceAwardedPanel(totalCollected, 4, stageName);
+        }
+
+        /// <summary>
         /// Menampilkan panel cutscene saat 1 keping puzzle didapatkan.
         /// </summary>
         public void ShowPieceAwardedPanel(int pieceNumber, int totalPieces, string stageName)
@@ -101,7 +120,7 @@ namespace LateBloom.Jigsaw
 
             while (elapsed < fadeDuration)
             {
-                elapsed += Time.deltaTime;
+                elapsed += Time.unscaledDeltaTime;
                 canvasGroup.alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / fadeDuration);
                 yield return null;
             }

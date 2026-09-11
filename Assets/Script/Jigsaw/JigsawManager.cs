@@ -88,6 +88,10 @@ namespace LateBloom.Jigsaw
         public string flashbackSceneName = "Flashback_Phase1";
         public float delayBeforeFlashback = 1.5f;
 
+        [Header("Game Pause Setting")]
+        [Tooltip("Aktifkan true jika ingin menghentikan/pause waktu game (Time.timeScale = 0) saat puzzle jigsaw aktif, dan unpause (Time.timeScale = 1) saat jigsaw selesai/ditutup.")]
+        public bool pauseGameWhenActive = true;
+
         // ─────────────────────────────────────────
         //  8. PIECE & SLOT LISTS (isi manual atau auto-fetch)
         // ─────────────────────────────────────────
@@ -133,9 +137,17 @@ namespace LateBloom.Jigsaw
             InitializePuzzle();
         }
 
-        private void OnDisable()  { SaveProgress(); }
+        private void OnDisable()  
+        { 
+            SaveProgress(); 
+            if (pauseGameWhenActive) Time.timeScale = 1f; 
+        }
         private void OnApplicationPause(bool p) { if (p) SaveProgress(); }
-        private void OnDestroy()  { SaveProgress(); }
+        private void OnDestroy()  
+        { 
+            SaveProgress(); 
+            if (pauseGameWhenActive) Time.timeScale = 1f; 
+        }
 
         // ══════════════════════════════════════════
         //  METADATA
@@ -652,6 +664,11 @@ namespace LateBloom.Jigsaw
             }
 
             UpdateProgressUI();
+
+            if (pauseGameWhenActive)
+            {
+                Time.timeScale = 0f;
+            }
         }
 
         // ══════════════════════════════════════════
@@ -776,7 +793,8 @@ namespace LateBloom.Jigsaw
 
         private IEnumerator FlashbackRoutine()
         {
-            yield return new WaitForSeconds(delayBeforeFlashback);
+            Time.timeScale = 1f;
+            yield return new WaitForSecondsRealtime(delayBeforeFlashback);
             if (!string.IsNullOrEmpty(flashbackSceneName))
                 UnityEngine.SceneManagement.SceneManager.LoadScene(flashbackSceneName);
         }
