@@ -39,6 +39,10 @@ public class ClickInput : MonoBehaviour
         if (rayhit.collider != null)
         {
             Debug.Log("Clicked on: " + rayhit.collider.name);
+
+            IInteractable interactable =
+                rayhit.collider.GetComponentInParent<IInteractable>();
+            interactable?.Interact();
         }
     }
 }
