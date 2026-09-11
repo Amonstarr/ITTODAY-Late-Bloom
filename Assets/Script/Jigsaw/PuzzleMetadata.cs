@@ -36,6 +36,7 @@ namespace LateBloom.Jigsaw
         public string flowerName = "Bunga Matahari";
 
         [Header("Visual & Texture")]
+        public Sprite puzzlePhotoSprite;
         public Texture2D puzzlePhotoTexture;
         public Sprite backgroundSprite;
         public Sprite boardFrameSprite;

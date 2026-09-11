@@ -26,6 +26,10 @@ namespace LateBloom.Raising
         [TextArea(2, 4)]
         public string narrativeTheme = "Kesetiaan yang salah arah. MC membangun rumah sebagai bentuk cinta, tapi lupa istrinya hanya ingin ia hadir.";
 
+        [Header("Integrasi Jigsaw Puzzle")]
+        [Tooltip("File asset PuzzleMetadata yang berisi foto utuh kenangan & jumlah keping puzzle untuk bunga ini")]
+        public PuzzleMetadata puzzleMetadata;
+
         [Header("Konfigurasi 4 Fase (Bibit, Tunas, Kuncup, Mekar)")]
         public List<FlowerPhaseRequirement> phaseRequirements = new List<FlowerPhaseRequirement>();
 

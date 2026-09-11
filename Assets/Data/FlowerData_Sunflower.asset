@@ -16,8 +16,9 @@ MonoBehaviour:
   flowerName: Sunflower
   flowerMeaning: Kesetiaan
   flowerColor: Kuning
-  narrativeTheme: 'Kesetiaan yang salah arah. MC membangun rumah sebagai bentuk cinta,
-    tapi lupa hadir di dalamnya.'
+  narrativeTheme: Kesetiaan yang salah arah. MC membangun rumah sebagai bentuk cinta,
+    tapi lupa hadir di dalamnya.
+  puzzleMetadata: {fileID: 11400000, guid: 41fa7b147f2ea7e47b888c80eb43f488, type: 2}
   phaseRequirements:
   - stage: 0
     targetSunlight: 30

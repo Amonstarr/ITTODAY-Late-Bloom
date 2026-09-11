@@ -146,7 +146,46 @@ namespace LateBloom.Jigsaw
             {
                 puzzleId = puzzleMetadata.puzzleId;
                 instanceId = puzzleMetadata.instanceId;
+
+                // Terapkan foto/sprite dari Metadata ke JigsawManager
+                if (puzzleMetadata.puzzlePhotoSprite != null)
+                {
+                    puzzlePhotoSprite = puzzleMetadata.puzzlePhotoSprite;
+                    if (puzzlePhotoTexture == null && puzzlePhotoSprite.texture != null)
+                    {
+                        puzzlePhotoTexture = puzzlePhotoSprite.texture;
+                    }
+                }
+                if (puzzleMetadata.puzzlePhotoTexture != null)
+                {
+                    puzzlePhotoTexture = puzzleMetadata.puzzlePhotoTexture;
+                    if (puzzlePhotoSprite == null && puzzlePhotoTexture != null)
+                    {
+                        puzzlePhotoSprite = Sprite.Create(
+                            puzzlePhotoTexture,
+                            new Rect(0, 0, puzzlePhotoTexture.width, puzzlePhotoTexture.height),
+                            new Vector2(0.5f, 0.5f)
+                        );
+                    }
+                }
+
+                // Terapkan Background & Frame jika diisi di Metadata
+                if (puzzleMetadata.backgroundSprite != null && manualBackground != null)
+                {
+                    manualBackground.sprite = puzzleMetadata.backgroundSprite;
+                }
+                if (puzzleMetadata.boardFrameSprite != null && manualBoardFrame != null)
+                {
+                    manualBoardFrame.sprite = puzzleMetadata.boardFrameSprite;
+                }
+
                 puzzleMetadata.LoadFromDisk();
+
+                // Potong dan terapkan foto ke kepingan puzzle jika kepingan ada di scene
+                if (puzzlePhotoTexture != null && pieces != null && pieces.Count > 0)
+                {
+                    SliceAndAssignPhotoToPieces();
+                }
             }
         }
 
