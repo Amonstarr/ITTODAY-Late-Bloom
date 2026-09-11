@@ -116,7 +116,7 @@ namespace LateBloom.Raising
                     flowerMeaning = "Kegigihan";
                     flowerColor = "Pink";
                     narrativeTheme = "Pengampunan dan penerimaan. Surat yang sengaja disiapkan istrinya untuk ditemukan setelah tiada.";
-                    // 5 Hari / Fase (Klimaks: Butuh hoki roll tinggi & mood hangat!)
+                    // 5 Hari / Fase (Kebutuhan stat tinggi)
                     phaseRequirements.Add(new FlowerPhaseRequirement(FlowerGrowthStage.Seed, 45, 30, 15, 5));
                     phaseRequirements.Add(new FlowerPhaseRequirement(FlowerGrowthStage.Sprout, 75, 45, 60, 5));
                     phaseRequirements.Add(new FlowerPhaseRequirement(FlowerGrowthStage.Bud, 75, 60, 60, 5));

@@ -12,12 +12,12 @@ namespace LateBloom.Raising
         public FlowerData activeFlowerData;
         public FlowerGrowthStage currentStage = FlowerGrowthStage.Seed;
 
-        [Header("Accumulated Stats in Current Phase (Skala 1 - 5)")]
+        [Header("Accumulated Growth Stats")]
         [SerializeField] private int currentSunlight = 0;
         [SerializeField] private int currentNutrients = 0;
         [SerializeField] private int currentWater = 0;
 
-        public event Action<int, int, int> OnStatsChanged; // sun, nut, water
+        public event Action<int, int, int> OnStatsChanged;
         public event Action<FlowerGrowthStage> OnStageChanged;
 
         public int CurrentSunlight => currentSunlight;
@@ -52,7 +52,6 @@ namespace LateBloom.Raising
         public void SetStage(FlowerGrowthStage newStage)
         {
             currentStage = newStage;
-            // Poin pertumbuhan bersifat kumulatif (tidak di-reset ke 0 saat naik fase)
             NotifyStats();
             OnStageChanged?.Invoke(currentStage);
         }
@@ -91,7 +90,7 @@ namespace LateBloom.Raising
                 if (req != null) return req;
             }
 
-            // Fallback requirement botani kumulatif jika activeFlowerData belum terhubung
+            // Fallback requirement if data is not assigned
             switch (currentStage)
             {
                 case FlowerGrowthStage.Seed: return new FlowerPhaseRequirement(currentStage, 30, 30, 45, 10);

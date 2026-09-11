@@ -44,13 +44,7 @@ namespace LateBloom.Raising
             NotifyState();
         }
 
-        /// <summary>
-        /// Menghitung persentase kegagalan (Failure Rate %) ala Uma Musume.
-        /// - Energi >= 50%: 0% risiko gagal.
-        /// - Energi 30% - 49%: 5% - 20% risiko gagal.
-        /// - Energi 10% - 29%: 21% - 55% risiko gagal.
-        /// - Energi < 10%: 56% - 85% risiko gagal.
-        /// </summary>
+
         public int GetFailureRate()
         {
             float percent = (float)currentEnergy / maxEnergy;
@@ -104,7 +98,7 @@ namespace LateBloom.Raising
         }
 
         /// <summary>
-        /// Aksi Minum Teh (Rest ala Uma Musume) untuk memulihkan energi besar.
+        /// Aksi Minum Teh (Rest) untuk memulihkan energi pemain.
         /// </summary>
         public void RestDrinkTea()
         {

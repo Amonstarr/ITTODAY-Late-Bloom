@@ -6,10 +6,10 @@ namespace LateBloom.Raising
 {
     public enum EvaluationGrade
     {
-        Perfect, // S-Rank: Sangat presisi dengan kebutuhan botani
-        Good,    // A-Rank: Sangat sehat dengan sedikit variasi
-        Pass,    // B-Rank: Berhasil mekar/tumbuh
-        Failed   // Terlalu jauh dari kebutuhan (layu / butuh pemulihan)
+        Perfect, // S-Rank
+        Good,    // A-Rank
+        Pass,    // B-Rank
+        Failed
     }
 
     [Serializable]
@@ -43,7 +43,7 @@ namespace LateBloom.Raising
         }
 
         /// <summary>
-        /// Mengevaluasi kondisi tanaman di akhir batas hari fase terhadap target GDD.
+        /// Evaluates plant growth stats against stage target requirements.
         /// </summary>
         public EvaluationResult Evaluate(PlantGrowthManager plant, FlowerPhaseRequirement requirement)
         {
@@ -51,7 +51,7 @@ namespace LateBloom.Raising
 
             if (requirement == null)
             {
-                // Fallback requirement botani standar jika data requirement kosong
+                // Fallback requirement if data is missing
                 FlowerGrowthStage currentStage = (plant != null) ? plant.currentStage : FlowerGrowthStage.Seed;
                 switch (currentStage)
                 {
@@ -79,7 +79,7 @@ namespace LateBloom.Raising
             result.nutDiff = Mathf.Abs(nutDiff);
             result.waterDiff = Mathf.Abs(waterDiff);
 
-            // Cek rasio pemenuhan target
+            // Calculate fulfillment ratio
             float sunRatio = (sunTarget > 0) ? (float)plant.CurrentSunlight / sunTarget : 1f;
             float nutRatio = (nutTarget > 0) ? (float)plant.CurrentNutrients / nutTarget : 1f;
             float waterRatio = (waterTarget > 0) ? (float)plant.CurrentWater / waterTarget : 1f;

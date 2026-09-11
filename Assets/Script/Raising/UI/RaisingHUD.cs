@@ -6,12 +6,7 @@ using LateBloom.Jigsaw;
 namespace LateBloom.Raising
 {
     /// <summary>
-    /// Menampilkan HUD Raising ala Uma Musume:
-    /// - Header: Nama Bunga, Fase Aktif, Hari saat ini / Total Hari
-    /// - Indikator Poin: Cahaya, Nutrisi, Air vs Target Fase
-    /// - Kondisi MC: Stamina (0-100) & Mood & Failure Rate
-    /// - Log Aksi Terakhir
-    /// Dilengkapi OnGUI otomatis agar langsung tampak di layar tanpa setup manual yang rumit.
+    /// Menampilkan HUD status Raising meliputi informasi fase bunga, sisa hari, statistik tanaman, kondisi stamina, dan mood pemain.
     /// </summary>
     public class RaisingHUD : MonoBehaviour
     {

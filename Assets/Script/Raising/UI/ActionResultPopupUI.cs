@@ -7,37 +7,28 @@ using LateBloom.Raising;
 namespace LateBloom.Raising.UI
 {
     /// <summary>
-    /// Popup hasil aksi perawatan di tengah layar sesuai sketsa desain pemain (media_1789117357878.jpg):
-    /// - Dimmed dark overlay (latar gelap transparan)
-    /// - Banner putih horizontal di tengah layar dengan teks aksi di kiri dan pot/bunga di kanan
-    /// - 4 baris stat bersih di bawah banner:
-    ///     [Air]      +X  ->  Total
-    ///     [Cahaya]   +X  ->  Total
-    ///     [Nutrisi]  +X  ->  Total
-    ///     [Stamina]  -X  ->  Total
-    /// - "Click to continue" di kanan bawah (klik di mana saja menutup popup)
-    /// - Tanpa emotikon/emoji alay, desain bersih & elegan.
+    /// Popup UI for displaying care action feedback and phase evaluation checkpoints.
     /// </summary>
     public class ActionResultPopupUI : MonoBehaviour
     {
         public static ActionResultPopupUI Instance { get; private set; }
         public static bool IsOpen { get; private set; }
 
-        [Header("Custom Icons (Opsional - otomatis dibuatkan jika kosong)")]
+        [Header("Custom Icons")]
         [SerializeField] private Sprite waterIconSprite;
         [SerializeField] private Sprite sunIconSprite;
         [SerializeField] private Sprite nutrientIconSprite;
         [SerializeField] private Sprite staminaIconSprite;
         [SerializeField] private Sprite potFallbackSprite;
 
-        // UI References (dibuat secara runtime atau dari inspector)
+        // UI references
         private GameObject popupRoot;
         private CanvasGroup canvasGroup;
         private TextMeshProUGUI actionTitleText;
         private Image plantImage;
         private Image potImage;
 
-        // 4 Stat Rows
+        // Stat row references
         private TextMeshProUGUI waterDeltaText;
         private TextMeshProUGUI waterArrowText;
         private TextMeshProUGUI waterTotalText;
@@ -130,7 +121,7 @@ namespace LateBloom.Raising.UI
         {
             if (!IsOpen) return;
 
-            // Hint Text breathing pulse
+            // Hint breathing animation
             if (continueHintText != null)
             {
                 float alpha = Mathf.PingPong(Time.unscaledTime * 1.5f, 0.5f) + 0.45f;
@@ -139,7 +130,7 @@ namespace LateBloom.Raising.UI
                 continueHintText.color = c;
             }
 
-            // Tunggu pemain melepas klik mouse dari aksi pemilihan alat di meja
+            // Wait until pointer click is released before allowing dismissal
             if (pointerMustBeReleased)
             {
                 if (!Input.GetMouseButton(0))
@@ -149,7 +140,7 @@ namespace LateBloom.Raising.UI
                 return;
             }
 
-            // Klik di mana saja atau tekan Space/Enter untuk lanjut
+            // Dismiss popup on user click or confirm key
             if (Time.unscaledTime >= canDismissTime)
             {
                 if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return))
@@ -176,13 +167,11 @@ namespace LateBloom.Raising.UI
                 BuildUIHierarchy();
             }
 
-            // Set Judul
             if (actionTitleText != null)
             {
                 actionTitleText.text = string.IsNullOrEmpty(data.actionTitle) ? "Bibit Tumbuh" : data.actionTitle;
             }
 
-            // Set Gambar Bunga & Pot
             if (plantImage != null)
             {
                 if (data.plantSprite != null)
@@ -210,20 +199,17 @@ namespace LateBloom.Raising.UI
                 }
             }
 
-            // Format Panah & Teks Aksi Normal
             if (waterArrowText != null) waterArrowText.text = "->";
             if (sunArrowText != null) sunArrowText.text = "->";
             if (nutArrowText != null) nutArrowText.text = "->";
             if (staminaArrowText != null) staminaArrowText.text = "->";
             if (continueHintText != null) continueHintText.text = "Click to continue";
 
-            // Set Nilai 4 Baris Stats
             SetStatRow(waterDeltaText, waterTotalText, data.deltaWater, data.totalWater, false);
             SetStatRow(sunDeltaText, sunTotalText, data.deltaSunlight, data.totalSunlight, false);
             SetStatRow(nutDeltaText, nutTotalText, data.deltaNutrients, data.totalNutrients, false);
             SetStatRow(staminaDeltaText, staminaTotalText, data.deltaEnergy, data.totalEnergy, true);
 
-            // Buka Popup
             IsOpen = true;
             popupRoot.SetActive(true);
             canDismissTime = Time.unscaledTime + 0.35f;
@@ -243,13 +229,11 @@ namespace LateBloom.Raising.UI
                 BuildUIHierarchy();
             }
 
-            // Set Judul Banner Evaluasi
             if (actionTitleText != null)
             {
                 actionTitleText.text = string.IsNullOrEmpty(data.result.title) ? "Evaluasi Fase Selesai" : data.result.title;
             }
 
-            // Set Gambar Bunga & Pot
             if (plantImage != null)
             {
                 if (data.plantSprite != null)
@@ -277,22 +261,15 @@ namespace LateBloom.Raising.UI
                 }
             }
 
-            // Format Panah menjadi pembanding "/" untuk 3 baris kebutuhan bunga
             if (waterArrowText != null) waterArrowText.text = "/";
             if (sunArrowText != null) sunArrowText.text = "/";
             if (nutArrowText != null) nutArrowText.text = "/";
             if (staminaArrowText != null) staminaArrowText.text = "->";
 
-            // Baris 1: Air (Tercapai / Target)
             SetEvaluationRow(waterDeltaText, waterTotalText, data.currentWater, data.targetWater);
-
-            // Baris 2: Cahaya (Tercapai / Target)
             SetEvaluationRow(sunDeltaText, sunTotalText, data.currentSunlight, data.targetSunlight);
-
-            // Baris 3: Nutrisi (Tercapai / Target)
             SetEvaluationRow(nutDeltaText, nutTotalText, data.currentNutrients, data.targetNutrients);
 
-            // Baris 4: Peringkat & Transisi Fase (Grade -> Stage Baru / +2 Hari)
             if (staminaDeltaText != null)
             {
                 staminaDeltaText.text = data.result.grade.ToString();
@@ -309,7 +286,6 @@ namespace LateBloom.Raising.UI
                 continueHintText.text = "Klik di mana saja untuk lanjut ke fase baru";
             }
 
-            // Buka Popup
             IsOpen = true;
             popupRoot.SetActive(true);
             canDismissTime = Time.unscaledTime + 0.35f;
@@ -327,7 +303,6 @@ namespace LateBloom.Raising.UI
             if (currentLabel != null)
             {
                 currentLabel.text = current.ToString();
-                // Hijau jika memenuhi target, putih jika belum
                 currentLabel.color = (current >= target) ? new Color(0.38f, 0.85f, 0.5f) : new Color(0.95f, 0.95f, 0.95f);
             }
 
@@ -366,7 +341,7 @@ namespace LateBloom.Raising.UI
                 else if (delta < 0)
                 {
                     deltaLabel.text = delta.ToString();
-                    deltaLabel.color = new Color(0.96f, 0.45f, 0.45f); // Merah/salmon lembut untuk berkurang
+                    deltaLabel.color = new Color(0.96f, 0.45f, 0.45f);
                 }
                 else
                 {
@@ -409,15 +384,11 @@ namespace LateBloom.Raising.UI
             if (popupRoot != null) popupRoot.SetActive(false);
         }
 
-        // ──────────────────────────────────────────
-        // PEMBUATAN STRUKTUR UI SECARA OTOMATIS
-        // ──────────────────────────────────────────
-
+        // UI hierarchy construction
         private void BuildUIHierarchy()
         {
             if (popupRoot != null) return;
 
-            // Cari Canvas di Scene
             Canvas canvas = GetComponentInParent<Canvas>();
             if (canvas == null)
             {
@@ -431,7 +402,6 @@ namespace LateBloom.Raising.UI
 
             Transform parentTransform = canvas != null ? canvas.transform : transform;
 
-            // Cari font TMP default di scene
             TMP_FontAsset fontAsset = null;
             TextMeshProUGUI existingTmp = FindFirstObjectByType<TextMeshProUGUI>();
             if (existingTmp != null)
@@ -439,10 +409,9 @@ namespace LateBloom.Raising.UI
                 fontAsset = existingTmp.font;
             }
 
-            // Pastikan Sprite Ikon tersedia
             EnsureSprites();
 
-            // 1. Root Popup (Fullscreen Overlay)
+            // Root overlay
             popupRoot = new GameObject("ActionResultPopup", typeof(RectTransform), typeof(CanvasGroup));
             popupRoot.transform.SetParent(parentTransform, false);
             RectTransform rootRect = popupRoot.GetComponent<RectTransform>();
@@ -453,7 +422,6 @@ namespace LateBloom.Raising.UI
 
             canvasGroup = popupRoot.GetComponent<CanvasGroup>();
 
-            // Dark Dimmer Image (Layar Meredup)
             GameObject dimmerObj = new GameObject("DimmerOverlay", typeof(RectTransform), typeof(Image));
             dimmerObj.transform.SetParent(popupRoot.transform, false);
             RectTransform dimmerRect = dimmerObj.GetComponent<RectTransform>();
@@ -463,10 +431,10 @@ namespace LateBloom.Raising.UI
             dimmerRect.offsetMax = Vector2.zero;
 
             Image dimmerImg = dimmerObj.GetComponent<Image>();
-            dimmerImg.color = new Color(0f, 0f, 0f, 0.65f); // Gelap transparan 65%
+            dimmerImg.color = new Color(0f, 0f, 0f, 0.65f);
             dimmerImg.raycastTarget = true;
 
-            // 2. Center White Banner (Horizontal Bar)
+            // Center banner
             GameObject bannerObj = new GameObject("CenterWhiteBanner", typeof(RectTransform), typeof(Image));
             bannerObj.transform.SetParent(popupRoot.transform, false);
             RectTransform bannerRect = bannerObj.GetComponent<RectTransform>();
@@ -479,11 +447,10 @@ namespace LateBloom.Raising.UI
             bannerImg.color = Color.white;
             bannerImg.raycastTarget = false;
 
-            // Garis pembatas hitam atas & bawah banner (seperti di sketsa)
             CreateLine(bannerObj.transform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -3f), new Vector2(0f, 0f), new Color(0.12f, 0.12f, 0.15f, 1f));
             CreateLine(bannerObj.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 0f), new Vector2(0f, 3f), new Color(0.12f, 0.12f, 0.15f, 1f));
 
-            // Sisi Kiri Banner: Judul Aksi / Event (Contoh: "Bibit Tumbuh")
+            // Banner title & plant visual
             GameObject titleObj = new GameObject("ActionTitleText", typeof(RectTransform), typeof(TextMeshProUGUI));
             titleObj.transform.SetParent(bannerObj.transform, false);
             RectTransform titleRect = titleObj.GetComponent<RectTransform>();
@@ -497,11 +464,10 @@ namespace LateBloom.Raising.UI
             actionTitleText.text = "Bibit Tumbuh";
             actionTitleText.fontSize = 44;
             actionTitleText.fontStyle = FontStyles.Bold;
-            actionTitleText.color = new Color(0.12f, 0.14f, 0.18f); // Hitam arang bersih
+            actionTitleText.color = new Color(0.12f, 0.14f, 0.18f);
             actionTitleText.alignment = TextAlignmentOptions.MidlineLeft;
             actionTitleText.raycastTarget = false;
 
-            // Sisi Kanan Banner: Wadah Bunga & Pot
             GameObject plantContainer = new GameObject("PlantBannerContainer", typeof(RectTransform));
             plantContainer.transform.SetParent(bannerObj.transform, false);
             RectTransform plantContRect = plantContainer.GetComponent<RectTransform>();
@@ -510,7 +476,6 @@ namespace LateBloom.Raising.UI
             plantContRect.offsetMin = Vector2.zero;
             plantContRect.offsetMax = Vector2.zero;
 
-            // Pot Image
             GameObject potObj = new GameObject("PotImage", typeof(RectTransform), typeof(Image));
             potObj.transform.SetParent(plantContainer.transform, false);
             RectTransform potRect = potObj.GetComponent<RectTransform>();
@@ -525,7 +490,6 @@ namespace LateBloom.Raising.UI
             potImage.raycastTarget = false;
             if (potFallbackSprite != null) potImage.sprite = potFallbackSprite;
 
-            // Plant / Sprout Image
             GameObject plantSprObj = new GameObject("PlantImage", typeof(RectTransform), typeof(Image));
             plantSprObj.transform.SetParent(plantContainer.transform, false);
             RectTransform plantSprRect = plantSprObj.GetComponent<RectTransform>();
@@ -539,7 +503,7 @@ namespace LateBloom.Raising.UI
             plantImage.preserveAspect = true;
             plantImage.raycastTarget = false;
 
-            // 3. Stats Section di Bawah Banner (4 Baris Rapi)
+            // Stats section
             GameObject statsContainer = new GameObject("StatsContainer", typeof(RectTransform), typeof(VerticalLayoutGroup));
             statsContainer.transform.SetParent(popupRoot.transform, false);
             RectTransform statsRect = statsContainer.GetComponent<RectTransform>();
@@ -556,13 +520,12 @@ namespace LateBloom.Raising.UI
             vlg.childForceExpandWidth = true;
             vlg.spacing = 8f;
 
-            // Buat 4 Baris
             CreateStatRow("WaterRow", statsContainer.transform, waterIconSprite, fontAsset, out waterDeltaText, out waterArrowText, out waterTotalText);
             CreateStatRow("SunRow", statsContainer.transform, sunIconSprite, fontAsset, out sunDeltaText, out sunArrowText, out sunTotalText);
             CreateStatRow("NutrientRow", statsContainer.transform, nutrientIconSprite, fontAsset, out nutDeltaText, out nutArrowText, out nutTotalText);
             CreateStatRow("StaminaRow", statsContainer.transform, staminaIconSprite, fontAsset, out staminaDeltaText, out staminaArrowText, out staminaTotalText);
 
-            // 4. "Click to continue" di Kanan Bawah
+            // Continue prompt
             GameObject continueObj = new GameObject("ClickToContinueText", typeof(RectTransform), typeof(TextMeshProUGUI));
             continueObj.transform.SetParent(popupRoot.transform, false);
             RectTransform continueRect = continueObj.GetComponent<RectTransform>();
@@ -595,7 +558,6 @@ namespace LateBloom.Raising.UI
             hlg.childForceExpandHeight = false;
             hlg.spacing = 18f;
 
-            // 1. Ikon
             GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
             iconObj.transform.SetParent(rowObj.transform, false);
             RectTransform iconRect = iconObj.GetComponent<RectTransform>();
@@ -607,7 +569,6 @@ namespace LateBloom.Raising.UI
             iconImg.color = Color.white;
             iconImg.raycastTarget = false;
 
-            // 2. Delta Text (Contoh: +10)
             GameObject deltaObj = new GameObject("Delta", typeof(RectTransform), typeof(TextMeshProUGUI));
             deltaObj.transform.SetParent(rowObj.transform, false);
             RectTransform deltaRect = deltaObj.GetComponent<RectTransform>();
@@ -622,7 +583,6 @@ namespace LateBloom.Raising.UI
             deltaText.color = Color.white;
             deltaText.raycastTarget = false;
 
-            // 3. Arrow Text (->)
             GameObject arrowObj = new GameObject("Arrow", typeof(RectTransform), typeof(TextMeshProUGUI));
             arrowObj.transform.SetParent(rowObj.transform, false);
             RectTransform arrowRect = arrowObj.GetComponent<RectTransform>();
@@ -638,7 +598,6 @@ namespace LateBloom.Raising.UI
             arrowText.raycastTarget = false;
             arrowTextOut = arrowText;
 
-            // 4. Total Text (Contoh: 80)
             GameObject totalObj = new GameObject("Total", typeof(RectTransform), typeof(TextMeshProUGUI));
             totalObj.transform.SetParent(rowObj.transform, false);
             RectTransform totalRect = totalObj.GetComponent<RectTransform>();
@@ -669,10 +628,7 @@ namespace LateBloom.Raising.UI
             img.raycastTarget = false;
         }
 
-        // ──────────────────────────────────────────
-        // GENERASI IKON MINIMALIS PROSEDURAL
-        // ──────────────────────────────────────────
-
+        // Procedural fallback icon generation
         private void EnsureSprites()
         {
             if (waterIconSprite == null) waterIconSprite = CreateDropletSprite();
@@ -704,11 +660,8 @@ namespace LateBloom.Raising.UI
                     float u = (x / (float)res) * 2f - 1f;
                     float v = (y / (float)res) * 2f - 1f;
 
-                    // Lingkaran bawah centered di (0, -0.25) radius 0.5
                     float distCircle = Mathf.Sqrt(u * u + (v + 0.25f) * (v + 0.25f));
                     bool inCircle = distCircle <= 0.48f;
-
-                    // Kerucut atas meruncing ke (0, 0.7)
                     bool inCone = (v >= -0.25f && v <= 0.72f) && (Mathf.Abs(u) <= (0.72f - v) * 0.5f);
 
                     if (inCircle || inCone)
@@ -739,10 +692,7 @@ namespace LateBloom.Raising.UI
                     float v = (y / (float)res) * 2f - 1f;
                     float dist = Mathf.Sqrt(u * u + v * v);
 
-                    // Lingkaran tengah matahari
                     bool inCore = dist <= 0.38f;
-
-                    // 8 Sinar matahari
                     float angle = Mathf.Atan2(v, u);
                     float rayPattern = Mathf.Cos(angle * 8f);
                     bool inRay = (dist >= 0.35f && dist <= 0.75f) && (rayPattern > 0.65f);
@@ -774,15 +724,11 @@ namespace LateBloom.Raising.UI
                     float u = (x / (float)res) * 2f - 1f;
                     float v = (y / (float)res) * 2f - 1f;
 
-                    // Batang tunas vertikal
                     bool inStem = (Mathf.Abs(u) <= 0.08f) && (v >= -0.7f && v <= 0.15f);
-
-                    // Daun Kiri (elips miring)
                     float lu = (u + 0.3f);
                     float lv = (v - 0.2f);
                     bool inLeftLeaf = (lu * lu * 2.5f + lv * lv * 5f) <= 0.25f && (u < 0.05f);
 
-                    // Daun Kanan (elips miring)
                     float ru = (u - 0.3f);
                     float rv = (v - 0.28f);
                     bool inRightLeaf = (ru * ru * 2.5f + rv * rv * 5f) <= 0.25f && (u > -0.05f);
@@ -814,7 +760,6 @@ namespace LateBloom.Raising.UI
                     float u = (x / (float)res) * 2.6f - 1.3f;
                     float v = (y / (float)res) * 2.6f - 1.15f;
 
-                    // Persamaan bentuk hati matematika: (x^2 + y^2 - 1)^3 - x^2 * y^3 <= 0
                     float a = u * u + v * v - 0.7f;
                     bool inHeart = (a * a * a - u * u * v * v * v) <= 0f;
 

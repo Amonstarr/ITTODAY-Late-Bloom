@@ -154,13 +154,7 @@ namespace LateBloom.Raising
 #if UNITY_EDITOR
         private void Update()
         {
-            // Shortcut testing cepat di Unity Editor
-            // [1] = Pinset (Cahaya Matahari)
-            // [2] = Botol Air (Penyiraman)
-            // [3] = Pupuk (Nutrisi)
-            // [4] = Cangkir Teh (Rest)
-            // [5] = Radio (Mood Boost)
-            // [E] = Paksa Evaluasi Sekarang
+            // Debug shortcuts in Unity Editor
             if (Input.GetKeyDown(KeyCode.Alpha1)) ExecuteSunlightAction();
             if (Input.GetKeyDown(KeyCode.Alpha2)) ExecuteWaterAction();
             if (Input.GetKeyDown(KeyCode.Alpha3)) ExecuteNutrientAction();
@@ -205,10 +199,7 @@ namespace LateBloom.Raising
             }
         }
 
-        // ──────────────────────────────────────────
-        // AKSI PERAWATAN (COMMAND ALA UMA MUSUME)
-        // ──────────────────────────────────────────
-
+        // Care action handlers
         public void ExecuteSunlightAction()
         {
             if (turnSystem.RemainingDays <= 0) return;
@@ -230,7 +221,7 @@ namespace LateBloom.Raising
 
                 plantManager.AddSunlight(finalSun);
 
-                // Efek Penguapan: Mengurangi air sedikit (-3 s/d -5) jika air sudah ada
+                // Sunlight evaporation effect
                 int evap = UnityEngine.Random.Range(3, 6);
                 if (plantManager.CurrentWater > 0)
                 {
@@ -273,7 +264,7 @@ namespace LateBloom.Raising
 
                 plantManager.AddWater(finalWater);
 
-                // Efek Pelarutan: Membantu melarutkan sedikit nutrisi tanah (+2 s/d +4)
+                // Water nutrient dissolving bonus
                 int bonusNut = UnityEngine.Random.Range(2, 5);
                 plantManager.AddNutrients(bonusNut);
 
@@ -412,10 +403,7 @@ namespace LateBloom.Raising
             OnActionExecuted?.Invoke(feedback);
         }
 
-        // ──────────────────────────────────────────
-        // EVALUASI CHECKPOINT (THE "RACE")
-        // ──────────────────────────────────────────
-
+        // Checkpoint evaluation and stage transition
         private void HandleEvaluationTime()
         {
             FlowerPhaseRequirement req = plantManager.GetCurrentRequirement();
@@ -436,13 +424,12 @@ namespace LateBloom.Raising
             {
                 LogAction($"🎉 [CHECKPOINT SUKSES] {result.title} {result.detailMessage}");
 
-                // Majukan fase di PuzzlePhaseManager (ini memicu pembagian kepingan puzzle jurnal robek)
                 if (puzzlePhaseManager != null)
                 {
                     puzzlePhaseManager.AdvanceGrowthStage();
                 }
 
-                // Majukan fase internal PlantGrowthManager (poin kumulatif tetap ada, tidak di-nolkan)
+                // Advance plant stage
                 if (plantManager.currentStage == FlowerGrowthStage.Seed)
                 {
                     plantManager.SetStage(FlowerGrowthStage.Sprout);
@@ -456,7 +443,7 @@ namespace LateBloom.Raising
                     plantManager.SetStage(FlowerGrowthStage.Bloom);
                 }
 
-                // Mulai fase baru di TurnSystem
+                // Start next growth phase
                 FlowerPhaseRequirement nextReq = plantManager.GetCurrentRequirement();
                 int nextDays = (nextReq != null) ? nextReq.daysAllocated : 10;
                 turnSystem.StartNewPhase(nextDays);
@@ -464,7 +451,7 @@ namespace LateBloom.Raising
             else
             {
                 LogAction($"❌ [CHECKPOINT KURANG OPTIMAL] {result.detailMessage} MC butuh 2 hari tambahan untuk menstabilkan kondisi tanaman.");
-                // Berikan 2 hari kompensasi untuk membenahi stat
+                // Compensation period for recovery
                 turnSystem.StartNewPhase(2);
             }
 
