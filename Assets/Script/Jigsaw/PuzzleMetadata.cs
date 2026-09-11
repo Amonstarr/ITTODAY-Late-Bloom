@@ -42,8 +42,9 @@ namespace LateBloom.Jigsaw
 
         [Header("Phase Configuration")]
         public int seedStagePieces = 4;
+        public int sproutStagePieces = 4;
         public int budStagePieces = 4;
-        public int bloomStagePieces = 8;
+        public int bloomStagePieces = 4;
 
         [Header("Saved State (Runtime Data)")]
         public FlowerGrowthStage currentStage = FlowerGrowthStage.Seed;

@@ -7,8 +7,9 @@ namespace LateBloom.Jigsaw
     public enum FlowerGrowthStage
     {
         Seed = 0,
-        Bud = 1,
-        Bloom = 2
+        Sprout = 1,
+        Bud = 2,
+        Bloom = 3
     }
 
     public class PuzzlePhaseManager : MonoBehaviour
@@ -22,11 +23,14 @@ namespace LateBloom.Jigsaw
         [Tooltip("Jumlah kepingan yang didapat saat fase Seed (Benih)")]
         public int seedStagePieces = 4;
 
+        [Tooltip("Jumlah kepingan yang didapat saat fase Sprout (Tunas)")]
+        public int sproutStagePieces = 4;
+
         [Tooltip("Jumlah kepingan yang didapat saat fase Bud (Kuncup)")]
         public int budStagePieces = 4;
 
         [Tooltip("Jumlah kepingan yang didapat saat fase Bloom (Mekar)")]
-        public int bloomStagePieces = 8;
+        public int bloomStagePieces = 4;
 
         [Header("Current Status")]
         public FlowerGrowthStage currentStage = FlowerGrowthStage.Seed;
@@ -41,7 +45,7 @@ namespace LateBloom.Jigsaw
         public UnityEvent<int, int> onPiecesAwarded;
         public UnityEvent onPuzzleUnlocked;
 
-        public int TotalTargetPieces => seedStagePieces + budStagePieces + bloomStagePieces;
+        public int TotalTargetPieces => seedStagePieces + sproutStagePieces + budStagePieces + bloomStagePieces;
         public int TotalPiecesCollected => totalPiecesCollected;
         public bool IsPuzzleUnlocked => isPuzzleUnlocked;
 
@@ -75,7 +79,7 @@ namespace LateBloom.Jigsaw
         private void Update()
         {
             // ── TEST SHORTCUTS (Editor Only) ──────────────────
-            // N = Advance ke fase berikutnya (Seed → Bud → Bloom)
+            // N = Advance ke fase berikutnya (Seed → Sprout → Bud → Bloom)
             // R = Reset ke fase Seed
             if (UnityEngine.Input.GetKeyDown(KeyCode.N))
             {
@@ -113,6 +117,7 @@ namespace LateBloom.Jigsaw
             if (puzzleMetadata != null)
             {
                 seedStagePieces = puzzleMetadata.seedStagePieces;
+                sproutStagePieces = puzzleMetadata.sproutStagePieces;
                 budStagePieces = puzzleMetadata.budStagePieces;
                 bloomStagePieces = puzzleMetadata.bloomStagePieces;
             }
@@ -130,6 +135,10 @@ namespace LateBloom.Jigsaw
         {
             if (currentStage == FlowerGrowthStage.Seed)
             {
+                SetGrowthStage(FlowerGrowthStage.Sprout);
+            }
+            else if (currentStage == FlowerGrowthStage.Sprout)
+            {
                 SetGrowthStage(FlowerGrowthStage.Bud);
             }
             else if (currentStage == FlowerGrowthStage.Bud)
@@ -146,6 +155,10 @@ namespace LateBloom.Jigsaw
             if (currentStage >= FlowerGrowthStage.Seed)
             {
                 totalPiecesCollected += seedStagePieces;
+            }
+            if (currentStage >= FlowerGrowthStage.Sprout)
+            {
+                totalPiecesCollected += sproutStagePieces;
             }
             if (currentStage >= FlowerGrowthStage.Bud)
             {

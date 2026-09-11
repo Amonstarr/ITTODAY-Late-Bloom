@@ -3,5 +3,6 @@ public enum ItemType
     Water,
     Fertilizer,
     Sunlight,
-    Tea
+    Tea,
+    Radio
 }
